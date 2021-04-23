@@ -1,28 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script type="text/javascript" src="static/js/client.js"></script>
+    <meta charset="utf-8">
     <title>Snake</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link rel="stylesheet" href="static/css/login.css">
+    <link rel="stylesheet" href="static/css/game.css">
+
 </head>
 <body>
     
-    <canvas id="game" width="500" height="500"></canvas>
+    <div id="login">
+        <button id="single" type="submit">Singleplayer</button> <br/><br/>
+        <button id="multi" type="submit">Multiplayer</button>
+    </div>
 
-<script>
-    
-    function setup() {
-        show();
-        canv=document.getElementById("game");
-        context=game.getContext("2d");
-        context.fillStyle="black";
-        context.fillRect(0,0,canv.width,canv.height)
-        //document.addEventListener('keydown', keyPush);
-        //setInterval(move,1000/15);
-    }
-    window.onload=setup;
-    xv=yv=0;
+    <div id="game">
+        <canvas id="canvas" width="500" height="500"></canvas>
+        <p>heeyy</p>
+    </div>
 
-</script>
-
+<script type="text/javascript" src="static/js/client.js"></script>
 </body>
 </html>

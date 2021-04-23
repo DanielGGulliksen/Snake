@@ -1,0 +1,15 @@
+<canvas id="game" width="500" height="500"></canvas>
+<script>
+    
+    function setup() {
+        canv=document.getElementById("game");
+        context=game.getContext("2d");
+        context.fillStyle="black";
+        context.fillRect(0,0,canv.width,canv.height)
+        //document.addEventListener('keydown', keyPush);
+        //setInterval(move,1000/15);
+    }
+    window.onload=setup;
+    xv=yv=0;
+
+</script>

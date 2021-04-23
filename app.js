@@ -14,6 +14,15 @@ var server = app.listen(5000, () => {
 
 var io = socket(server);
 
+let totalPlayers = -1;
 io.on('connection', function(socket){
-    console.log("sock id:" + socket);
+        socket.emit('id', {"id":socket.id});
+        totalPlayers++;
+        io.sockets.emit('otherLogon', {"total":totalPlayers});
+
+        socket.on('disconnect', function () {
+            totalPlayers--;
+            io.sockets.emit('user disconnected', { "total":totalPlayers});
+        });
 });
+

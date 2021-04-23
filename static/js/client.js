@@ -21,6 +21,13 @@ socket.on('user disconnected', function(data){
 
 const loginScreen = document.getElementById("login");
 const gameScreen = document.getElementById('game');
+const snake_speed = 2;
+
+const snakeBody = [
+    { x: 11, y: 10 },
+    { x: 12, y: 10 },
+    { x: 13, y: 10 }
+    ]
 
 gameScreen.style.display = "none";
 

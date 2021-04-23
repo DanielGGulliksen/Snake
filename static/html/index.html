@@ -1,7 +1,17 @@
-<canvas id="game" width="500" height="500"></canvas>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script type="text/javascript" src="static/js/client.js"></script>
+    <title>Snake</title>
+</head>
+<body>
+    
+    <canvas id="game" width="500" height="500"></canvas>
+
 <script>
     
     function setup() {
+        show();
         canv=document.getElementById("game");
         context=game.getContext("2d");
         context.fillStyle="black";
@@ -13,3 +23,6 @@
     xv=yv=0;
 
 </script>
+
+</body>
+</html>

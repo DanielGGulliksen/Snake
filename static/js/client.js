@@ -21,13 +21,6 @@ socket.on('user disconnected', function(data){
 
 const loginScreen = document.getElementById("login");
 const gameScreen = document.getElementById('game');
-const snake_speed = 2;
-
-const snakeBody = [
-    { x: 11, y: 10 },
-    { x: 12, y: 10 },
-    { x: 13, y: 10 }
-    ]
 
 gameScreen.style.display = "none";
 
@@ -72,26 +65,26 @@ function update() {
 }
 
 let direction = { x: 0, y: 0 }
-let previousDirevtion = { x: 0, y: 0 }
+let previousDirection = { x: 0, y: 0 }
 
 document.addEventListener('keydown', keydown);
 
 function keydown(e) {
     switch(e.keyCode) {
         case "keyUp" :
-            if (previousDirevtion.y !== 0) break
+            if (previousDirection.y !== 0) break
             direction = { x: 0, y: -1 }
         break;
         case "keyDown" :
-            if (previousDirevtion.y !== 0) break
+            if (previousDirection.y !== 0) break
             direction = { x: 0, y: 1 }
         break;
         case "keyRight" :
-            if (previousDirevtion.x !== 0) break
+            if (previousDirection.x !== 0) break
             direction = { x: 1, y: 0 }
         break;
         case "keyLeft" :
-            if (previousDirevtion.x !== 0) break
+            if (previousDirection.x !== 0) break
             direction = { x: -1, y: 0 }
         break;
     }

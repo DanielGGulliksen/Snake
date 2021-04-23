@@ -1,3 +1,28 @@
+body {
+    background-color: rgb(0, 0, 0);
+}
+
 button {
-    color:brown;
+    background-color: #00b7ff;
+    color: white;
+    font-size: 16px;
+}
+
+.login {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    margin: auto;
+    text-align: center;
+    width: 60%;
+    
+    padding: 10px;
+}
+
+.loginButton {
+    margin: auto;
+    width: 60%;
+    padding: 10px;
 }

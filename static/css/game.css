@@ -1,16 +1,3 @@
-p {
-    color:chartreuse;
-}
-
-#game {
-    background-color: lightgray;
-    width: 100vmin;
-    height: 100vmin;
-    display: grid;
-    grid-template-columns: repeat (21, 1fr);
-    grid-template-rows: repeat (21, 1fr);
-}
-
 body {
     height: 100vh;
     width: 100vw;
@@ -18,14 +5,27 @@ body {
     justify-content: center;
     align-items: center;
     margin: 0;
+    background-color: rgb(14, 19, 37);
+}
+
+#game {
+    background-color: black;
+    width: 100vmin;
+    height: 100vmin;
+    grid-template-columns: repeat(35, 1fr);
+    grid-template-rows: repeat(35, 1fr);
+    border: white;
+    border-radius: 5px;
 }
 
 .snake {
-    background-color: green (200, 100%, 50%);
+    background-color: rgb(5, 238, 5);
     border: .25vmin solid black;
+    border-radius: 5px;
 }
 
 .food {
-    background-color: #DC143C (50, 100%, 50%);
+    background-color: #DC143C;
     border: .25vmin solid black;
+    border-radius: 5px;
 }

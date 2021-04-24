@@ -30,14 +30,6 @@ const multiButton = document.getElementById("multi");
 singleButton.addEventListener('click', newSingleplayer);
 multiButton.addEventListener('click', newMultiplayer);
 
-const snake_speed = 2;
-
-const snakeBody = [
-    { x: 11, y: 11 },
-    { x: 12, y: 11 },
-    { x: 13, y: 11 }
-    ]
-
 function newSingleplayer(){
     start();
 }
@@ -48,41 +40,43 @@ function newMultiplayer(){
 
 function start(){
     loginScreen.style.display = "none";
-    gameScreen.style.display = "block";
+    gameScreen.style.display = "grid";
 }
 
-let lastRenderTime = 0
- 
+const snake_speed = 1;
+
+let lastRenderTime = 0;
 
 function main(currentTime) {
-    window.requestAnimationFrame(main)
-    const secondsSinceLastRender = (currentTime - lastRenderTime) / 1000
-    if(secondsSinceLastRender < 1 / snake_speed) return
+    window.requestAnimationFrame(main);
+    const secondsSinceLastRender = (currentTime - lastRenderTime) / 1000;
+    if(secondsSinceLastRender < 1 / snake_speed) return;
 
-    console.log('draw snake')
-    lastRenderTime = currentTime
+    lastRenderTime = currentTime;
 
-    updateSnake()
-    drawSnake()
+    //updateSnake()
+    drawSnake();
 }
-window.requestAnimationFrame(main)
+window.requestAnimationFrame(main);
 
-const gb = document.getElementById('game')
+const snakeBody = [
+    { x: 11, y: 11 },
+    { x: 12, y: 11 },
+    { x: 13, y: 11 }
+    ];
 
-function drawSnake(gb) {
+function drawSnake() {
     snakeBody.forEach(segment => {
-        const snakeElement = document.createElement('div')
-        snakeElement.style.gridRowStart = segment.x
-        snakeElement.style.gridColumnStart = segment.y
-        snakeElement.classList.add('snake')
-        //gb.appendChild(snakeElement) 
-    })
+        const snakeElement = document.createElement('div');
+        snakeElement.style.gridRowStart = segment.x;
+        snakeElement.style.gridColumnStart = segment.y;
+        snakeElement.classList.add('snake'); // <div class="snake"></div>
+        gameScreen.appendChild(snakeElement);
+    });
 }
-
-
 
 function updateSnake() {
-    console.log('update snake')
+    console.log('update snake');
 }
 
 let direction = { x: 0, y: 0 }
@@ -110,7 +104,7 @@ function keydown(e) {
         break;
     }
 }
-
+ 
 function getDirection() {
     return direction;
 }

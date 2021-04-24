@@ -33,9 +33,9 @@ multiButton.addEventListener('click', newMultiplayer);
 const snake_speed = 2;
 
 const snakeBody = [
-    { x: 11, y: 10 },
-    { x: 12, y: 10 },
-    { x: 13, y: 10 }
+    { x: 11, y: 11 },
+    { x: 12, y: 11 },
+    { x: 13, y: 11 }
     ]
 
 function newSingleplayer(){
@@ -51,17 +51,38 @@ function start(){
     gameScreen.style.display = "block";
 }
 
-function drawSnake(snake) {
+let lastRenderTime = 0
+ 
+
+function main(currentTime) {
+    window.requestAnimationFrame(main)
+    const secondsSinceLastRender = (currentTime - lastRenderTime) / 1000
+    if(secondsSinceLastRender < 1 / snake_speed) return
+
+    console.log('draw snake')
+    lastRenderTime = currentTime
+
+    updateSnake()
+    drawSnake()
+}
+window.requestAnimationFrame(main)
+
+const gb = document.getElementById('game')
+
+function drawSnake(gb) {
     snakeBody.forEach(segment => {
-        const snakeElement = document.createElement('div');
+        const snakeElement = document.createElement('div')
         snakeElement.style.gridRowStart = segment.x
         snakeElement.style.gridColumnStart = segment.y
         snakeElement.classList.add('snake')
-        snake.appendChild(snakeElement)
+        //gb.appendChild(snakeElement) 
     })
 }
 
-function update() {
+
+
+function updateSnake() {
+    console.log('update snake')
 }
 
 let direction = { x: 0, y: 0 }

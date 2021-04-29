@@ -3,21 +3,37 @@ var socket = io.connect('http://localhost:5000', {
 });
 
 //socketConnection.on('connect', function(data) { console.log(socketConnection.id + " " + data);});
-socket.emit('online');
 
-let clientId = null;
-
-socket.on('id', function(data){
-    clientId = data.id;
+socket.on('update players', function(players){
+    let tableContent = "<table>";
+    const row = name => `<tr><td>Id</td><td>${name}</td></tr>`;
+    let length = Object.keys(players.players).length;
+    for (i=0;i<length;i++){
+        if (players.players[i].id != players.id)
+            tableContent += row(players.players[i].id);
+        else
+            tableContent += row("You");
+    }
+    document.getElementById("players").innerHTML = tableContent+"</table>";
 });
 
-socket.on('otherLogon', function(data){
-    document.getElementById("players").innerText = data.total;
+function createRoom(){
+    socket.emit('create room');
+}
+
+socket.on('update rooms', function(rooms){
+    let content = "<table>";
+    let length = Object.keys(rooms).length;
+    for (let id = 0; id < length; id++){
+        let totalMembers = 0;
+        for (let i = 0; i < rooms[id].members.length; i++){
+            totalMembers++;
+        }
+        content += "<tr><td>"+rooms[id].roomName+":</td><td>"+totalMembers+"</td></tr>"; 
+    }
+    document.getElementById("existingRooms").innerHTML = content + "</table>";
 });
 
-socket.on('user disconnected', function(data){
-    document.getElementById("players").innerText = data.total;
-})
 
 const loginScreen = document.getElementById("login");
 const gameScreen = document.getElementById('game');
@@ -34,8 +50,11 @@ function newSingleplayer(){
     start();
 }
 
+const roomsList = document.getElementById("rooms");
+
 function newMultiplayer(){
-    start();
+    roomsList.style.display = "block";
+    //start();
 }
 
 function start(){

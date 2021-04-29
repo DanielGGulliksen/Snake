@@ -1,4 +1,4 @@
-const snake_speed = 1;
+const snake_speed = 2;
 
 let lastRenderTime = 0;
 
@@ -9,91 +9,70 @@ function main(currentTime) {
 
     lastRenderTime = currentTime;
 
-    updateSnake()
     drawSnake();
+    updateSnake()
 }
+
 window.requestAnimationFrame(main);
 
 const snakeBody = [
-    { x: 11, y: 11 },
-    { x: 12, y: 11 },
-    { x: 13, y: 11 }
+    { x: 11, y: 21 },
+    { x: 11, y: 22 },
+    { x: 11, y: 23 }
     ];
 
+let direction = { x: 0, y: -1 }
 
-let segments = 0; 
+//let segments = snakeBody.length;
+
+   
 
 function drawSnake() {
-    for(i = 0; i < segments; i++) {
-        const seg = document.getElementById("" + i);
-        console.log(seg);
-        if(seg != null) {
-        document.getElementById("" + i).remove(); 
-        segments--;
-        }
-    }
-    snakeBody.forEach(segment => {
+    let segment = 0;
+    snakeBody.forEach(part => {
+        console.log(segment)
+        let oldSegment = document.getElementById(""+segment);
+        if (oldSegment != null)
+            oldSegment.remove();
+            
         const snakeElement = document.createElement('div');
-        snakeElement.id = segments;
-        segments++; 
-        snakeElement.style.gridRowStart = segment.x;
-        snakeElement.style.gridColumnStart = segment.y;
-        snakeElement.classList.add('snake'); // <div class="snake"></div>
+        snakeElement.id = segment;
+        segment++;
+        snakeElement.style.gridColumnStart = part.x;
+        snakeElement.style.gridRowStart = part.y;
+        snakeElement.classList.add('snake');
         gameScreen.appendChild(snakeElement);
-        
     });
 }
 
+
+
 function updateSnake() {
-    const head = {x: snakeBody[0].x + 1, y: snakeBody[0].y};
+    const head = {x: snakeBody[0].x + direction.x, y: snakeBody[0].y + direction.y};
     snakeBody.unshift(head);
-    snakeBody.pop(); 
+    snakeBody.pop();
     
     //console.log('update snake');
 }
 
 
+document.addEventListener('keydown', changeDirection);
 
-document.addEventListener('keydown', snakeDirection());
+function changeDirection(key) {
 
-function snakeDirection(e) {
-    let direction = { x: 0, y: 0 }
-    
-
-    if (e.keyCode === 37) { //previousDirection.x !== 0
-        direction = { x: -1, y: 0 }
+    if (key.keyCode === 37) { //left
+        direction = { x: -1, y: 0 };
     }
-    if (e.keyCode === 38 ) { //&& previousDirection.y !== 0
-        direction = { x: 0, y: -1 }
+    if (key.keyCode === 38 ) { // up
+        direction = { x: 0, y: -1 };
     }
-    if (e.keyCode === 39 ) { //&& previousDirection.x !== 0
-        direction = { x: 1, y: 0 }
+    if (key.keyCode === 39 ) { // right
+        direction = { x: 1, y: 0 };
     }
-    if (e.keyCode === 40 ) { //&& previousDirection.y !== 0
-        direction = { x: 0, y: 1 }
+    if (key.keyCode === 40 ) { // down
+        direction = { x: 0, y: 1 };
     }
-
-
-
-    /*
-    switch(e.keyCode) {
-        case "keyUp" :
-            if (previousDirection.y !== 0) break
-            direction = { x: 0, y: -1 }
-        break;
-        case "keyDown" :
-            if (previousDirection.y !== 0) break
-            direction = { x: 0, y: 1 }
-        break;
-        case "keyRight" :
-            if (previousDirection.x !== 0) break
-            direction = { x: 1, y: 0 }
-        break;
-        case "keyLeft" :
-            if (previousDirection.x !== 0) break
-            direction = { x: -1, y: 0 }
-        break;
-    } */
+    console.log(key.keyCode);
 }
  
 function getDirection() {

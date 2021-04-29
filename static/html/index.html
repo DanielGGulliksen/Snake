@@ -13,8 +13,16 @@
     <div id="login" class="login">
         <h1>Snake</h1>
         <button id="single" type="submit" class="loginButton">Singleplayer</button> <br/><br/>
+        
         <button id="multi" type="submit" class="loginButton">Multiplayer</button> <br/><br/><br/>
-        <label>Other Players:</label><p id="players"></p>
+            <div id="rooms" style="display: none;">
+                <label>Rooms:</label> <br/>
+                <div id="existingRooms"></div>
+                <button id="createRoom" onclick="createRoom();">Create</button>
+            </div>
+            <br/>
+
+        <label>Players:</label><div id="players"></div>
         
 
     </div>

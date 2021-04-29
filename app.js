@@ -14,15 +14,52 @@ var server = app.listen(5000, () => {
 
 var io = socket(server);
 
-let totalPlayers = -1;
+let rooms = {};
+let players = {};
+
 io.on('connection', function(socket){
-        socket.emit('id', {"id":socket.id});
-        totalPlayers++;
-        io.sockets.emit('otherLogon', {"total":totalPlayers});
+        const thisPlayer = {"id":socket.id};
+        let length = Object.keys(players).length;
+        for (i=0;i<length+1;i++){
+            if (players[i] == undefined)
+                players[i] = thisPlayer;
+        }
+        io.sockets.emit('update players', {"id":socket.id, "players":players});
 
         socket.on('disconnect', function () {
-            totalPlayers--;
-            io.sockets.emit('user disconnected', { "total":totalPlayers});
+            console.log("disconnected");
+            let found = false;
+            let length = Object.keys(players).length;
+            
+            for (idx=0;idx<length && !found ;idx++){
+                console.log(idx);
+                if (players[idx] != undefined){
+                
+                    if (players[idx].id == socket.id){
+                        players[idx] = undefined;
+                        console.log("players[i].id: "+players[idx]+", "+ socket.id);
+                        found = true;
+                    }
+                }
+            }
+            console.log("----------------------------------");
+            console.log(players);
+            io.sockets.emit('update players', {"id":socket.id, "players":players});
         });
+
+        socket.on('create room', function(){
+            let length = Object.keys(rooms).length;
+            for (let i = 0; i < length+1; i++){
+                if (rooms[i] == undefined){
+                    rooms[i] = {"roomName":"Room "+i, "members":[{"id":socket.id}]};
+                }
+            }
+            io.sockets.emit('update rooms', rooms);
+        });
+
+        socket.on('join room', function(){
+
+        });
+
 });
 

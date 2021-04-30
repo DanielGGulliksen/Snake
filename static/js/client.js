@@ -2,17 +2,33 @@ var socket = io.connect('http://localhost:5000', {
     'sync disconnect on unload': true
 });
 
-//socketConnection.on('connect', function(data) { console.log(socketConnection.id + " " + data);});
+let clientId = null;
+socket.on('id', (id) => clientId = id);
 
 socket.on('update players', function(players){
     let tableContent = "<table>";
-    const row = name => `<tr><td>Id</td><td>${name}</td></tr>`;
-    let length = Object.keys(players.players).length;
-    for (i=0;i<length;i++){
-        if (players.players[i].id != players.id)
-            tableContent += row(players.players[i].id);
-        else
-            tableContent += row("You");
+    
+    //const row = content => `<tr>${content}</tr>`;
+    const cell = name => `<td>${name}</td>`;
+
+    let length = Object.keys(players).length;
+    let columnCounter = 0;
+    let rowContent = "";
+    for (let i=0;i<length;i++){
+        if (columnCounter == 0)
+            tableContent += "<tr>";
+        
+        if (columnCounter <5) {
+            if (players[i] != undefined){
+                if (players[i].id != clientId)
+                    tableContent += cell(players[i].name);
+                else
+                    tableContent += cell(players[i].name+" (You)");  
+        }
+        columnCounter++;   
+        }
+        if (columnCounter > 4)
+            columnCounter = 0;
     }
     document.getElementById("players").innerHTML = tableContent+"</table>";
 });
@@ -21,17 +37,41 @@ function createRoom(){
     socket.emit('create room');
 }
 
-socket.on('update rooms', function(rooms){
+function joinRoom(roomId){
+    socket.emit('join room', {"roomId": roomId});
+}
+
+function updateRooms(rooms){
+    
     let content = "<table>";
-    let length = Object.keys(rooms).length;
-    for (let id = 0; id < length; id++){
-        let totalMembers = 0;
-        for (let i = 0; i < rooms[id].members.length; i++){
-            totalMembers++;
+    
+    for (var id in rooms){
+        if (rooms[id] != undefined){
+            let totalMembers = rooms[id].members.length;
+            let members = "";
+            for (let i = 0; i < totalMembers; i++){
+                const member = rooms[id].members[i];
+                if (i < totalMembers-1) {
+                    if (member.id != clientId)
+                        members += member.name + ", ";
+                    else
+                        members += member.name + " (you), ";
+                }
+                else {
+                    if (member.id != clientId)
+                        members += rooms[id].members[i].name;
+                    else
+                        members += member.name + " (you)";
+                }
+            }
+            content += "<tr><td><button onclick='joinRoom("+id+");'>Join</button></td><td>"+rooms[id].roomName+":</td><td>("+totalMembers+"):</td><td>"+members+"</td></tr>";
         }
-        content += "<tr><td>"+rooms[id].roomName+":</td><td>"+totalMembers+"</td></tr>"; 
-    }
+    }                                           
     document.getElementById("existingRooms").innerHTML = content + "</table>";
+}
+
+socket.on('update rooms', function(rooms){
+   updateRooms(rooms);
 });
 
 
@@ -54,10 +94,20 @@ const roomsList = document.getElementById("rooms");
 
 function newMultiplayer(){
     roomsList.style.display = "block";
-    //start();
+    multiButton.removeEventListener('click', newMultiplayer);
+    multiButton.innerText = "Ready";
+    multiButton.disabled = true;
+    multiButton.className = 'greyedOut';
+    //multiButton.className = 'loginButton'; reverts to old style
+    multiButton.addEventListener('click', setReady);
+    socket.emit('get rooms');
 }
 
 function start(){
     loginScreen.style.display = "none";
     gameScreen.style.display = "grid";
+}
+
+function setReady(){
+
 }

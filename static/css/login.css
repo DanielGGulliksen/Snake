@@ -7,7 +7,7 @@ h1 {
 
 table {
     padding: 15px;
-    font-size: 12px;
+    font-size: 14px;
     color: white;
 }
 
@@ -17,6 +17,10 @@ label {
 
 p {
     color: white;
+}
+
+td {
+    padding: 10px;
 }
 
 button {
@@ -42,6 +46,15 @@ button {
 
 .loginButton {
     margin: auto;
+    border: 2px solid #0ed4db;
     width: 60%;
     padding: 10px;
+}
+
+.greyedOut {
+    margin: auto;
+    width: 60%;
+    padding: 10px;
+    color: grey;
+    border: 2px solid grey;
 }

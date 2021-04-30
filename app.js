@@ -18,48 +18,134 @@ let rooms = {};
 let players = {};
 
 io.on('connection', function(socket){
-        const thisPlayer = {"id":socket.id};
+    
+    socket.emit('id', socket.id);    
+
+        let thisPlayer = {"id":socket.id, name: names[Math.floor(Math.random() * 38)]};
+        
         let length = Object.keys(players).length;
-        for (i=0;i<length+1;i++){
-            if (players[i] == undefined)
+        let added = false;
+        for (i=0;i<length+1 && !added;i++){
+            if (players[i] == undefined){
                 players[i] = thisPlayer;
+                added = true;
+            }
         }
-        io.sockets.emit('update players', {"id":socket.id, "players":players});
+        
+        io.sockets.emit('update players', players);
 
         socket.on('disconnect', function () {
-            console.log("disconnected");
             let found = false;
             let length = Object.keys(players).length;
             
             for (idx=0;idx<length && !found ;idx++){
-                console.log(idx);
                 if (players[idx] != undefined){
                 
                     if (players[idx].id == socket.id){
                         players[idx] = undefined;
-                        console.log("players[i].id: "+players[idx]+", "+ socket.id);
                         found = true;
                     }
                 }
             }
-            console.log("----------------------------------");
-            console.log(players);
-            io.sockets.emit('update players', {"id":socket.id, "players":players});
+
+            io.sockets.emit('update players', players);
         });
 
         socket.on('create room', function(){
+
             let length = Object.keys(rooms).length;
+            let stopped = false;
+
             for (let i = 0; i < length+1; i++){
                 if (rooms[i] == undefined){
-                    rooms[i] = {"roomName":"Room "+i, "members":[{"id":socket.id}]};
-                }
+                    let userFound = false;
+                    if (thisPlayer.currentRoomId != undefined){
+                        let room = rooms[thisPlayer.currentRoomId];
+                        if (room != undefined){
+                            if (room.members.length < 2) {
+                                stopped = true;
+                            }
+                            if (!stopped) {
+                                for (let j = 0; j< room.members.length && !userFound; j++){
+                                    if (thisPlayer.id == room.members[j].id){
+                                        room.members.splice(j,1);
+                                        userFound = true;
+                                    }
+                                }
+                            }
+                        } else console.log("room"+ thisPlayer.currentRoomId+" undefined");
+                        
+                        if (userFound){
+                            thisPlayer.currentRoomId = i;
+                            rooms[i] = {"roomName":"Room "+ i , "members":[thisPlayer]};
+                        }
+                    }
+                    else {
+                        if (!stopped){
+                        thisPlayer.currentRoomId = i;
+                        rooms[i] = {"roomName":"Room "+ i , "members":[thisPlayer]};
+                        }
+                    }
+                } 
             }
             io.sockets.emit('update rooms', rooms);
         });
 
-        socket.on('join room', function(){
+        socket.on('get rooms', () => socket.emit('update rooms', rooms));
 
+        socket.on('join room', function(data){
+            let found = false;
+            let room = rooms[data.roomId];            
+            if (room != undefined){
+                if (room.members != undefined){
+                    let userFound = false;
+                    if (thisPlayer.currentRoomId != undefined){
+                        let room = rooms[thisPlayer.currentRoomId];
+                        
+                        if (room != undefined){
+                            for (let j = 0; j< room.members.length && !userFound; j++){
+                                if (thisPlayer.id == room.members[j].id){
+                                    room.members.splice(j,1);
+                                    userFound = true;
+                                }
+                            }
+                            
+                            if (thisPlayer.currentRoomId != data.roomId)   
+                                if (room.members.length == 0) {
+                                    
+                                    rooms[thisPlayer.currentRoomId] = undefined;
+                                }
+                        }
+                        else console.log("room with id " + thisPlayer.currentRoomId+" is undefined.");
+                    }
+                    else userFound = true;
+                    
+                    if (userFound){
+
+                        for (let i=0; i < room.members.length && !found;i++){
+                            if (room.members[i] != undefined){
+                                if (room.members[i].id == thisPlayer.id)
+                                    found = true;
+                            }
+                        }
+                        if (!found){
+                            thisPlayer.currentRoomId = data.roomId;
+                            rooms[data.roomId].members.push(thisPlayer);
+                            io.sockets.emit('update rooms', rooms);
+                        }
+                        else
+                            console.log("user found");
+                    }
+                }
+                else
+                    console.log("members undefined");
+            }
+            else
+                console.log("room undefined");
         });
-
 });
 
+const names = ['Brian', 'Kiera', 'Treasa', 'Tierney', 'Phelan', 'Eadan', 'Shea', 'Osheen','Murdoch','Pilib',
+               'Ronan', 'Keeva', 'Daley', 'Aignes', 'Quinn', 'Nola', 'Rory', 'Conor', 'Ulick', 'Alannah',
+               'Moyra', 'Fiona', 'Cathair', 'Toal', 'Catriona', 'Enya', 'Concepta', 'Aoife', 'Niamh', 'Fionntan',
+               'Daly', 'Svavonne', 'Keenan', 'Teague', 'Brendanus', 'Florry', 'Talulla', 'Devnet', 'Cormac', 'Bryant'];

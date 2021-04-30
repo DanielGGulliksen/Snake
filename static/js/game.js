@@ -1,4 +1,4 @@
-const snake_speed = 2;
+const snake_speed = 5;
 
 let lastRenderTime = 0;
 
@@ -21,16 +21,12 @@ const snakeBody = [
     { x: 11, y: 23 }
     ];
 
-let direction = { x: 0, y: -1 }
-
-//let segments = snakeBody.length;
-
+let direction = { x: 0, y: -1 };
    
 
 function drawSnake() {
     let segment = 0;
     snakeBody.forEach(part => {
-        console.log(segment)
         let oldSegment = document.getElementById(""+segment);
         if (oldSegment != null)
             oldSegment.remove();
@@ -45,14 +41,10 @@ function drawSnake() {
     });
 }
 
-
-
 function updateSnake() {
     const head = {x: snakeBody[0].x + direction.x, y: snakeBody[0].y + direction.y};
     snakeBody.unshift(head);
     snakeBody.pop();
-    
-    //console.log('update snake');
 }
 
 
@@ -72,9 +64,4 @@ function changeDirection(key) {
     if (key.keyCode === 40 ) { // down
         direction = { x: 0, y: 1 };
     }
-    console.log(key.keyCode);
-}
- 
-function getDirection() {
-    return direction;
 }

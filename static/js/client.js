@@ -6,10 +6,10 @@ let clientId = null;
 socket.on('id', (id) => clientId = id);
 
 socket.on('update players', function(players){
-    let tableContent = "<table>";
+    //let tableContent = "<table>";
+    let tableContent = "";
     
-    //const row = content => `<tr>${content}</tr>`;
-    const cell = name => `<td>${name}</td>`;
+    const cell = name => `<td class='playerTd'>${name}</td>`;
 
     let length = Object.keys(players).length;
     let columnCounter = 0;
@@ -30,15 +30,18 @@ socket.on('update players', function(players){
         if (columnCounter > 4)
             columnCounter = 0;
     }
-    document.getElementById("players").innerHTML = tableContent+"</table>";
+    //document.getElementById("players").innerHTML = tableContent+"</table>";
+    document.getElementById("players").innerHTML = tableContent;
 });
 
 function createRoom(){
     socket.emit('create room');
+    multiButton.className = 'loginButton';
 }
 
 function joinRoom(roomId){
     socket.emit('join room', {"roomId": roomId});
+    multiButton.className = 'loginButton';
 }
 
 function updateRooms(rooms){
@@ -64,7 +67,7 @@ function updateRooms(rooms){
                         members += member.name + " (you)";
                 }
             }
-            content += "<tr><td><button onclick='joinRoom("+id+");'>Join</button></td><td>"+rooms[id].roomName+":</td><td>("+totalMembers+"):</td><td>"+members+"</td></tr>";
+            content += "<tr><td><button onclick='joinRoom("+id+");'>Join</button></td><th>"+rooms[id].roomName+":</th><td>("+totalMembers+"x):</td><td>"+members+"</td></tr>";
         }
     }                                           
     document.getElementById("existingRooms").innerHTML = content + "</table>";
@@ -87,6 +90,7 @@ singleButton.addEventListener('click', newSingleplayer);
 multiButton.addEventListener('click', newMultiplayer);
 
 function newSingleplayer(){
+    socket.emit('leave multiplayer');
     start();
 }
 
@@ -98,7 +102,6 @@ function newMultiplayer(){
     multiButton.innerText = "Ready";
     multiButton.disabled = true;
     multiButton.className = 'greyedOut';
-    //multiButton.className = 'loginButton'; reverts to old style
     multiButton.addEventListener('click', setReady);
     socket.emit('get rooms');
 }

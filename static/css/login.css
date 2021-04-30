@@ -6,7 +6,6 @@ h1 {
 }
 
 table {
-    padding: 15px;
     font-size: 14px;
     color: white;
 }
@@ -17,10 +16,6 @@ label {
 
 p {
     color: white;
-}
-
-td {
-    padding: 10px;
 }
 
 button {
@@ -57,4 +52,8 @@ button {
     padding: 10px;
     color: grey;
     border: 2px solid grey;
+}
+
+.playerTd {
+    padding: 10px;
 }

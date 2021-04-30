@@ -143,6 +143,25 @@ io.on('connection', function(socket){
             else
                 console.log("room undefined");
         });
+
+        socket.on('leave multiplayer', function(){
+            const pid = thisPlayer.currentRoomId;
+            if (pid != undefined){
+                let room = rooms[thisPlayer.currentRoomId];
+                if (room != undefined){
+                    for (let j = 0; j< room.members.length; j++){
+                        if (thisPlayer.id == room.members[j].id){
+                            room.members.splice(j,1);
+                        }
+                    }
+                    if (room.members.length == 0){
+                        rooms[thisPlayer.currentRoomId] = undefined;
+                    
+                    }
+                    io.sockets.emit('update rooms', rooms);
+                }
+            }
+        });
 });
 
 const names = ['Brian', 'Kiera', 'Treasa', 'Tierney', 'Phelan', 'Eadan', 'Shea', 'Osheen','Murdoch','Pilib',

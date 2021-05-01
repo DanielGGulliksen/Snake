@@ -38,6 +38,23 @@ io.on('connection', function(socket){
             let found = false;
             let length = Object.keys(players).length;
             
+            if (thisPlayer.currentRoomId != undefined){
+                const pid = thisPlayer.currentRoomId;
+                
+                let room = rooms[thisPlayer.currentRoomId];
+                if (room != undefined){
+                    for (let j = 0; j< room.members.length; j++){
+                        if (thisPlayer.id == room.members[j].id){
+                            room.members.splice(j,1);
+                        }
+                    }
+                    if (room.members.length == 0){
+                        rooms[thisPlayer.currentRoomId] = undefined;        
+                    }
+                    io.sockets.emit('update rooms', rooms);
+                }
+            }
+
             for (idx=0;idx<length && !found ;idx++){
                 if (players[idx] != undefined){
                 
@@ -92,6 +109,8 @@ io.on('connection', function(socket){
         });
 
         socket.on('get rooms', () => socket.emit('update rooms', rooms));
+
+        socket.on('update all rooms', () => io.sockets.emit('update', rooms));
 
         socket.on('join room', function(data){
             let found = false;
@@ -162,7 +181,32 @@ io.on('connection', function(socket){
                 }
             }
         });
+
+        socket.on('set ready', function(){
+            thisPlayer.ready = true;
+            
+            let room = rooms[thisPlayer.currentRoomId];
+            let allReady = true;
+            for (let i = 0; i < room.members.length; i++){
+                if (room.members[i].ready != undefined){
+                    if (!room.members[i].ready)
+                        allReady = false;
+                }
+                else
+                    allReady = false;
+            }
+            if (allReady){
+                startGame(room.members.length);
+                io.sockets.emit('start game');
+            }
+            else
+                io.sockets.emit('update rooms', rooms);
+        });
 });
+
+function startGame(totalPlayers){
+
+}
 
 const names = ['Brian', 'Kiera', 'Treasa', 'Tierney', 'Phelan', 'Eadan', 'Shea', 'Osheen','Murdoch','Pilib',
                'Ronan', 'Keeva', 'Daley', 'Aignes', 'Quinn', 'Nola', 'Rory', 'Conor', 'Ulick', 'Alannah',

@@ -30,18 +30,30 @@ socket.on('update players', function(players){
         if (columnCounter > 4)
             columnCounter = 0;
     }
-    //document.getElementById("players").innerHTML = tableContent+"</table>";
     document.getElementById("players").innerHTML = tableContent;
 });
 
 function createRoom(){
     socket.emit('create room');
     multiButton.className = 'loginButton';
+    multiButton.disabled = false;
 }
 
 function joinRoom(roomId){
     socket.emit('join room', {"roomId": roomId});
     multiButton.className = 'loginButton';
+    multiButton.disabled = false;
+}
+
+function showReady(username, ready){
+    const p = un => `<p>${un}</p>`;
+    const readyp = readyun => `<p class='readyp'>${readyun}</p>`;
+
+    if (!ready){
+        return p(username);
+    }
+    else
+        return readyp(username);
 }
 
 function updateRooms(rooms){
@@ -54,17 +66,26 @@ function updateRooms(rooms){
             let members = "";
             for (let i = 0; i < totalMembers; i++){
                 const member = rooms[id].members[i];
+                let username = member.name;
+                let ready = false;
+                if (member.ready != undefined){
+                    if (member.ready){
+                        ready = true;
+                        username = username.bold();
+                    }
+                }
+
                 if (i < totalMembers-1) {
                     if (member.id != clientId)
-                        members += member.name + ", ";
+                        members += showReady(username + ", ", ready);
                     else
-                        members += member.name + " (you), ";
+                        members += showReady(username + " (you), ", ready);
                 }
                 else {
                     if (member.id != clientId)
-                        members += rooms[id].members[i].name;
+                        members += showReady(username, ready);
                     else
-                        members += member.name + " (you)";
+                        members += showReady(username + " (you)", ready);
                 }
             }
             content += "<tr><td><button onclick='joinRoom("+id+");'>Join</button></td><th>"+rooms[id].roomName+":</th><td>("+totalMembers+"x):</td><td>"+members+"</td></tr>";
@@ -76,6 +97,8 @@ function updateRooms(rooms){
 socket.on('update rooms', function(rooms){
    updateRooms(rooms);
 });
+
+socket.on('start game', start);
 
 
 const loginScreen = document.getElementById("login");
@@ -99,7 +122,7 @@ const roomsList = document.getElementById("rooms");
 function newMultiplayer(){
     roomsList.style.display = "block";
     multiButton.removeEventListener('click', newMultiplayer);
-    multiButton.innerText = "Ready";
+    multiButton.innerText = "Start";
     multiButton.disabled = true;
     multiButton.className = 'greyedOut';
     multiButton.addEventListener('click', setReady);
@@ -112,5 +135,7 @@ function start(){
 }
 
 function setReady(){
-
+    socket.emit('set ready');
+    document.getElementById('feedback').innerText = '(Your are ready)';
+    socket.emit('update all rooms');
 }

@@ -16,6 +16,18 @@ label {
 
 p {
     color: white;
+    float: left;
+    padding-left: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.readyp {
+    color:rgb(5, 238, 5);
+    float: left;
+    padding-left: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 button {
@@ -56,4 +68,8 @@ button {
 
 .playerTd {
     padding: 10px;
+}
+
+.feedback {
+    color: white;
 }

@@ -13,7 +13,7 @@ socket.on('update players', function(players){
 
     let length = Object.keys(players).length;
     let columnCounter = 0;
-    let rowContent = "";
+
     for (let i=0;i<length;i++){
         if (columnCounter == 0)
             tableContent += "<tr>";
@@ -59,38 +59,42 @@ function showReady(username, ready){
 function updateRooms(rooms){
     
     let content = "<table>";
-    
+
     for (var id in rooms){
         if (rooms[id] != undefined){
-            let totalMembers = rooms[id].members.length;
-            let members = "";
-            for (let i = 0; i < totalMembers; i++){
-                const member = rooms[id].members[i];
-                let username = member.name;
-                let ready = false;
-                if (member.ready != undefined){
-                    if (member.ready){
-                        ready = true;
-                        username = username.bold();
+            if (rooms[id].inGame == undefined){
+                let totalMembers = rooms[id].members.length;
+                let members = "";
+                for (let i = 0; i < totalMembers; i++){
+                    const member = rooms[id].members[i];
+                    let username = member.name;
+                    let ready = false;
+                    if (member.ready != undefined){
+                        if (member.ready){
+                            ready = true;
+                            username = username.bold();
+                        }
+                    }
+
+                    if (i < totalMembers-1) {
+                        if (member.id != clientId)
+                            members += showReady(username + ", ", ready);
+                        else
+                            members += showReady(username + " (you), ", ready);
+                    }
+                    else {
+                        if (member.id != clientId)
+                            members += showReady(username, ready);
+                        else
+                            members += showReady(username + " (you)", ready);
                     }
                 }
-
-                if (i < totalMembers-1) {
-                    if (member.id != clientId)
-                        members += showReady(username + ", ", ready);
-                    else
-                        members += showReady(username + " (you), ", ready);
-                }
-                else {
-                    if (member.id != clientId)
-                        members += showReady(username, ready);
-                    else
-                        members += showReady(username + " (you)", ready);
-                }
+                content += "<tr><td><button onclick='joinRoom("+id+");'>Join</button></td><th>"+rooms[id].roomName+":</th><td>("+totalMembers+"x):</td><td>"+members+"</td></tr>";
             }
-            content += "<tr><td><button onclick='joinRoom("+id+");'>Join</button></td><th>"+rooms[id].roomName+":</th><td>("+totalMembers+"x):</td><td>"+members+"</td></tr>";
+            else content += "<tr><th>"+rooms[id].roomName+":</th><td>(In game)</td></tr>";
         }
-    }                                           
+    }
+    
     document.getElementById("existingRooms").innerHTML = content + "</table>";
 }
 
@@ -98,8 +102,9 @@ socket.on('update rooms', function(rooms){
    updateRooms(rooms);
 });
 
-socket.on('start game', start);
-
+socket.on('start game', () => {
+    start();
+});
 
 const loginScreen = document.getElementById("login");
 const gameScreen = document.getElementById('game');
@@ -115,6 +120,7 @@ multiButton.addEventListener('click', newMultiplayer);
 function newSingleplayer(){
     socket.emit('leave multiplayer');
     start();
+    window.requestAnimationFrame(main);
 }
 
 const roomsList = document.getElementById("rooms");
@@ -139,3 +145,7 @@ function setReady(){
     document.getElementById('feedback').innerText = '(Your are ready)';
     socket.emit('update all rooms');
 }
+
+socket.on('update game', (gameState) => {
+    draw(gameState);
+});

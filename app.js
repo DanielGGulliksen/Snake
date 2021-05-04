@@ -16,6 +16,7 @@ var io = socket(server);
 
 let rooms = {};
 let players = {};
+let gameStates = {};
 
 io.on('connection', function(socket){
     
@@ -86,6 +87,7 @@ io.on('connection', function(socket){
                                 for (let j = 0; j< room.members.length && !userFound; j++){
                                     if (thisPlayer.id == room.members[j].id){
                                         room.members.splice(j,1);
+                                        socket.leave('room'+thisPlayer.currentRoomId);
                                         userFound = true;
                                     }
                                 }
@@ -94,12 +96,16 @@ io.on('connection', function(socket){
                         
                         if (userFound){
                             thisPlayer.currentRoomId = i;
+                            socket.join('room'+i);
+                            gameStates[i] = [];
                             rooms[i] = {"roomName":"Room "+ i , "members":[thisPlayer]};
                         }
                     }
                     else {
                         if (!stopped){
                         thisPlayer.currentRoomId = i;
+                        socket.join('room'+i);
+                        gameStates[i] = [];
                         rooms[i] = {"roomName":"Room "+ i , "members":[thisPlayer]};
                         }
                     }
@@ -125,13 +131,13 @@ io.on('connection', function(socket){
                             for (let j = 0; j< room.members.length && !userFound; j++){
                                 if (thisPlayer.id == room.members[j].id){
                                     room.members.splice(j,1);
+                                    socket.leave('room'+thisPlayer.currentRoomId);
                                     userFound = true;
                                 }
                             }
                             
                             if (thisPlayer.currentRoomId != data.roomId)   
                                 if (room.members.length == 0) {
-                                    
                                     rooms[thisPlayer.currentRoomId] = undefined;
                                 }
                         }
@@ -149,6 +155,7 @@ io.on('connection', function(socket){
                         }
                         if (!found){
                             thisPlayer.currentRoomId = data.roomId;
+                            socket.join('room'+data.roomId);
                             rooms[data.roomId].members.push(thisPlayer);
                             io.sockets.emit('update rooms', rooms);
                         }
@@ -170,12 +177,12 @@ io.on('connection', function(socket){
                 if (room != undefined){
                     for (let j = 0; j< room.members.length; j++){
                         if (thisPlayer.id == room.members[j].id){
+                            socket.leave('room'+thisPlayer.currentRoomId);
                             room.members.splice(j,1);
                         }
                     }
                     if (room.members.length == 0){
                         rooms[thisPlayer.currentRoomId] = undefined;
-                    
                     }
                     io.sockets.emit('update rooms', rooms);
                 }
@@ -196,17 +203,77 @@ io.on('connection', function(socket){
                     allReady = false;
             }
             if (allReady){
-                startGame(room.members.length);
-                io.sockets.emit('start game');
+                room.inGame = true;
+                io.sockets.emit('update rooms', rooms);
+                startGame(room, thisPlayer.currentRoomId, thisPlayer.id);
             }
             else
                 io.sockets.emit('update rooms', rooms);
         });
+
+        socket.on('update direction', function(direction){
+            changeDirection(direction, thisPlayer.number, thisPlayer.currentRoomId);
+        });
 });
 
-function startGame(totalPlayers){
+function startGame(room, roomId, thisPlayerId){
+   
+    io.to('room'+roomId).emit('start game');
+
+    //let gameState = {};
+    let gameState = gameStates[roomId];
+    let playerNumber = 0;
+    
+    for (var member in room.members){
+        const x = Math.floor(Math.random() * 35);
+        const y = Math.floor(Math.random() * 35);
+        let snakeBody = [
+            { x: x, y: y },
+            { x: x, y: y+1 },
+            { x: x, y: y+2 }
+            ];
+        let direction = { x: 0, y: -1 };
+        member.number = playerNumber;
+        let player = {id:thisPlayerId, body:snakeBody, direction:direction, number:playerNumber};
+        //let player = {body:snakeBody, direction};
+        gameState.push(player);
+        //gameState[playerNumber] = player;
+        playerNumber++;
+    }
+    updateGame(gameState, roomId);
+}
+
+//let time = 0;
+let advance = true;
+
+function updateGame(gameState, roomId) {
+    updateSnake(gameState);
+
+    io.to('room'+roomId).emit('update game', gameState);
+    if (advance) {
+        setTimeout(function() { 
+            updateGame(gameState, roomId);
+        }, 3000);
+    }
+}
+
+function changeDirection(direction, playerNumber, currentRoomId){
+    let gameState = gameStates[currentRoomId];
+    gameState[playerNumber].direction = direction;
+}
+
+function updateSnake(gameState) {
+    
+    gameState.forEach(player => {
+        const head = {x: player.body[0].x + player.direction.x, y: player.body[0].y + player.direction.y};
+        player.body.unshift(head);
+        player.body.pop();
+    });
 
 }
+
+
+
 
 const names = ['Brian', 'Kiera', 'Treasa', 'Tierney', 'Phelan', 'Eadan', 'Shea', 'Osheen','Murdoch','Pilib',
                'Ronan', 'Keeva', 'Daley', 'Aignes', 'Quinn', 'Nola', 'Rory', 'Conor', 'Ulick', 'Alannah',

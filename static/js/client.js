@@ -117,6 +117,8 @@ const multiButton = document.getElementById("multi");
 singleButton.addEventListener('click', newSingleplayer);
 multiButton.addEventListener('click', newMultiplayer);
 
+let multiplayer = false;
+
 function newSingleplayer(){
     socket.emit('leave multiplayer');
     start();
@@ -148,4 +150,5 @@ function setReady(){
 
 socket.on('update game', (gameState) => {
     draw(gameState);
+    multiplayer = true;
 });

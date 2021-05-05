@@ -65,6 +65,9 @@ io.on('connection', function(socket){
                     }
                 }
             }
+            if (thisPlayer.currentRoomId != undefined)    //
+                if (gameStates[thisPlayer.currentRoomId] != undefined)
+                    gameStates[thisPlayer.currentRoomId] = {};
 
             io.sockets.emit('update players', players);
         });
@@ -185,6 +188,8 @@ io.on('connection', function(socket){
                         rooms[thisPlayer.currentRoomId] = undefined;
                     }
                     io.sockets.emit('update rooms', rooms);
+                    if (gameStates[thisPlayer.currentRoomId] != undefined)
+                        gameStates[thisPlayer.currentRoomId] = {};
                 }
             }
         });
@@ -220,11 +225,10 @@ function startGame(room, roomId, thisPlayerId){
    
     io.to('room'+roomId).emit('start game');
 
-    //let gameState = {};
+    gameStates[roomId] = [];
     let gameState = gameStates[roomId];
-    let playerNumber = 0;
-    
-    for (var member in room.members){
+    console.log(gameStates);
+    for (var memberIndex in room.members){
         const x = Math.floor(Math.random() * 35);
         const y = Math.floor(Math.random() * 35);
         let snakeBody = [
@@ -233,27 +237,24 @@ function startGame(room, roomId, thisPlayerId){
             { x: x, y: y+2 }
             ];
         let direction = { x: 0, y: -1 };
-        member.number = playerNumber;
-        let player = {id:thisPlayerId, body:snakeBody, direction:direction, number:playerNumber};
+        room.members[memberIndex].number = memberIndex;
+        let player = {id:thisPlayerId, body:snakeBody, direction:direction, number:memberIndex, colour: randomColour()};
+        console.log(player.colour);
         //let player = {body:snakeBody, direction};
         gameState.push(player);
         //gameState[playerNumber] = player;
-        playerNumber++;
     }
     updateGame(gameState, roomId);
 }
-
-//let time = 0;
-let advance = true;
 
 function updateGame(gameState, roomId) {
     updateSnake(gameState);
 
     io.to('room'+roomId).emit('update game', gameState);
-    if (advance) {
+    if (gameState == gameStates[roomId]) { // If gameState variable has changed, the loop ends.
         setTimeout(function() { 
             updateGame(gameState, roomId);
-        }, 3000);
+        }, 300);
     }
 }
 
@@ -272,8 +273,14 @@ function updateSnake(gameState) {
 
 }
 
-
-
+function randomColour() {
+    let hex = '0123456789ABCDEF';
+    var colour = '#';
+    for (var i = 0; i < 6; i++) {
+      colour += hex[Math.floor(Math.random() * 16)];
+    }
+    return colour;
+  }
 
 const names = ['Brian', 'Kiera', 'Treasa', 'Tierney', 'Phelan', 'Eadan', 'Shea', 'Osheen','Murdoch','Pilib',
                'Ronan', 'Keeva', 'Daley', 'Aignes', 'Quinn', 'Nola', 'Rory', 'Conor', 'Ulick', 'Alannah',

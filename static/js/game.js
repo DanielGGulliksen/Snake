@@ -22,9 +22,8 @@ const snakeBody = [
 let direction = { x: 0, y: -1 };
 
 function draw(gameState) {
-
-    gameState.forEach(player => {
         let segment = 0;
+    gameState.forEach(player => {
         const snakeBody = player.body;
         snakeBody.forEach(part => {
             let oldSegment = document.getElementById(""+segment);
@@ -36,6 +35,7 @@ function draw(gameState) {
             segment++;
             snakeElement.style.gridColumnStart = part.x;
             snakeElement.style.gridRowStart = part.y;
+            snakeElement.style.backgroundColor = player.colour;
             snakeElement.classList.add('snake');
             gameScreen.appendChild(snakeElement);
         });
@@ -84,22 +84,6 @@ function changeDirection(key) {
     if (key.keyCode === 40 ) { // down
         direction = { x: 0, y: 1 };
     }
-}
-
-function updateDirection(key) {
-
-    if (key.keyCode === 37) { //left
-        direction = { x: -1, y: 0 };
-    }
-    if (key.keyCode === 38 ) { // up
-        direction = { x: 0, y: -1 };
-    }
-    if (key.keyCode === 39 ) { // right
-        direction = { x: 1, y: 0 };
-    }
-    if (key.keyCode === 40 ) { // down
-        direction = { x: 0, y: 1 };
-    }
-
-    socket.emit('update direction', direction);
+    if (multiplayer)
+        socket.emit('update direction', direction);
 }

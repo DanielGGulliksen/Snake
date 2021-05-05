@@ -7,6 +7,7 @@ const app = express();
 app.use(express.static('static/html'))
 app.use("/static/js", express.static('./static/js/'))
 app.use("/static/css", express.static('./static/css/'))
+app.use("/static/images", express.static('./static/images/'))
 
 var server = app.listen(5000, () => {
     console.log('Listening on port 5000');
@@ -210,7 +211,7 @@ io.on('connection', function(socket){
             if (allReady){
                 room.inGame = true;
                 io.sockets.emit('update rooms', rooms);
-                startGame(room, thisPlayer.currentRoomId, thisPlayer.id);
+                prepareGame(room, thisPlayer.currentRoomId, thisPlayer.id, 0);
             }
             else
                 io.sockets.emit('update rooms', rooms);
@@ -221,13 +222,16 @@ io.on('connection', function(socket){
         });
 });
 
+function prepareGame(room, roomId, thisPlayerId, counter){
+    startGame(room, roomId, thisPlayerId);
+}
+
 function startGame(room, roomId, thisPlayerId){
    
     io.to('room'+roomId).emit('start game');
 
     gameStates[roomId] = [];
     let gameState = gameStates[roomId];
-    console.log(gameStates);
     for (var memberIndex in room.members){
         const x = Math.floor(Math.random() * 35);
         const y = Math.floor(Math.random() * 35);
@@ -239,7 +243,7 @@ function startGame(room, roomId, thisPlayerId){
         let direction = { x: 0, y: -1 };
         room.members[memberIndex].number = memberIndex;
         let player = {id:thisPlayerId, body:snakeBody, direction:direction, number:memberIndex, colour: randomColour()};
-        console.log(player.colour);
+
         //let player = {body:snakeBody, direction};
         gameState.push(player);
         //gameState[playerNumber] = player;
@@ -273,6 +277,7 @@ function updateSnake(gameState) {
 
 }
 
+/*
 function randomColour() {
     let hex = '0123456789ABCDEF';
     var colour = '#';
@@ -281,6 +286,24 @@ function randomColour() {
     }
     return colour;
   }
+*/
+  
+function randomColour() {
+    var colour = values => `rgb(${values})`;
+   
+    let rgb = [];
+    
+    const min = Math.ceil(200);
+    const max = Math.floor(256);
+
+    for (var i = 0; i < 3; i++) {
+        if (i != 2)
+            rgb[i] = Math.floor(Math.random() * 256);
+        else
+            rgb[i] = Math.floor(Math.random() * (max - min) + min);
+    }
+    return colour(rgb[0]+","+rgb[1]+","+rgb[2]);
+}
 
 const names = ['Brian', 'Kiera', 'Treasa', 'Tierney', 'Phelan', 'Eadan', 'Shea', 'Osheen','Murdoch','Pilib',
                'Ronan', 'Keeva', 'Daley', 'Aignes', 'Quinn', 'Nola', 'Rory', 'Conor', 'Ulick', 'Alannah',

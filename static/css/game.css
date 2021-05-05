@@ -12,6 +12,8 @@ body {
     background-color: black;
     width: 100vmin;
     height: 100vmin;
+    display: grid;
+    float: left;
     grid-template-columns: repeat(35, 1fr);
     grid-template-rows: repeat(35, 1fr);
     border: white;
@@ -28,4 +30,21 @@ body {
     background-color: #DC143C;
     border: .25vmin solid black;
     border-radius: 50px;
+}
+
+.info {
+    color: white;
+}
+
+.pregame {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    margin: auto;
+    text-align: center;
+    width: 60%;
+    
+    padding: 10px;
 }

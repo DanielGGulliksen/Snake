@@ -107,9 +107,16 @@ socket.on('start game', () => {
 });
 
 const loginScreen = document.getElementById("login");
+//const inGameScreen = document.getElementById('ingame');
+
 const gameScreen = document.getElementById('game');
 
+const pregameScreen = document.getElementById("pregame");
+
+//inGameScreen.style.display = "none";
+pregameScreen.style.display = "none";
 gameScreen.style.display = "none";
+
 
 const singleButton = document.getElementById("single");
 const multiButton = document.getElementById("multi");
@@ -120,9 +127,29 @@ multiButton.addEventListener('click', newMultiplayer);
 let multiplayer = false;
 
 function newSingleplayer(){
+    pregameScreen.style.display = "block";
     socket.emit('leave multiplayer');
-    start();
-    window.requestAnimationFrame(main);
+    loginScreen.style.display = "none";
+    countdownDisplay.innerText = 5;
+    countdown(5);
+}
+
+const countdownDisplay = document.getElementById("timer");
+
+function countdown(counter){
+    if (counter > 0)
+        setTimeout(function() { 
+            counter--;
+            countdownDisplay.innerText = counter;
+            countdown(counter);
+        }, 1000);
+    else {
+        countdownDisplay.innerText = "";
+        pregameScreen.style.display = "none";
+        start();
+        if (!multiplayer)
+            window.requestAnimationFrame(main);
+    }
 }
 
 const roomsList = document.getElementById("rooms");
@@ -138,7 +165,8 @@ function newMultiplayer(){
 }
 
 function start(){
-    loginScreen.style.display = "none";
+    //loginScreen.style.display = "none";
+    //inGameScreen.style.display = "block";
     gameScreen.style.display = "grid";
 }
 

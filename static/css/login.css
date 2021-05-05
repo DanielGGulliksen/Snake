@@ -73,3 +73,11 @@ button {
 .feedback {
     color: white;
 }
+
+#timer {
+    font-size: 65px;
+}
+
+img {
+    width: 30%;
+}

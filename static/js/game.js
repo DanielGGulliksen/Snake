@@ -9,8 +9,8 @@ function main(currentTime) {
 
     lastRenderTime = currentTime;
 
-    drawSnake();
     updateSnake()
+    drawSnake();
 }
 
 const snakeBody = [
@@ -24,6 +24,7 @@ let direction = { x: 0, y: -1 };
 function draw(gameState) {
         let segment = 0;
     gameState.forEach(player => {
+        let shownHead = false;
         const snakeBody = player.body;
         snakeBody.forEach(part => {
             let oldSegment = document.getElementById(""+segment);
@@ -31,6 +32,10 @@ function draw(gameState) {
                 oldSegment.remove();
             
             const snakeElement = document.createElement('div');
+            if (!shownHead){
+                snakeElement.innerText = "^^";
+                shownHead = true;
+            }
             snakeElement.id = segment;
             segment++;
             snakeElement.style.gridColumnStart = part.x;
@@ -45,12 +50,17 @@ function draw(gameState) {
 
 function drawSnake() {
     let segment = 0;
+    let shownHead = false;
     snakeBody.forEach(part => {
         let oldSegment = document.getElementById(""+segment);
         if (oldSegment != null)
             oldSegment.remove();
-            
+        
         const snakeElement = document.createElement('div');
+        if (!shownHead){
+            snakeElement.innerText = "^^";
+            shownHead = true;
+        }
         snakeElement.id = segment;
         segment++;
         snakeElement.style.gridColumnStart = part.x;

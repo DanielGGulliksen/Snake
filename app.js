@@ -22,7 +22,7 @@ let gameStates = {};
 io.on('connection', function(socket){
     
     socket.emit('id', socket.id);    
-
+   
         let thisPlayer = {"id":socket.id, name: names[Math.floor(Math.random() * 38)]};
         
         let length = Object.keys(players).length;
@@ -211,7 +211,7 @@ io.on('connection', function(socket){
             if (allReady){
                 room.inGame = true;
                 io.sockets.emit('update rooms', rooms);
-                prepareGame(room, thisPlayer.currentRoomId, thisPlayer.id, 0);
+                createGame(room, thisPlayer.currentRoomId);
             }
             else
                 io.sockets.emit('update rooms', rooms);
@@ -222,11 +222,7 @@ io.on('connection', function(socket){
         });
 });
 
-function prepareGame(room, roomId, thisPlayerId, counter){
-    startGame(room, roomId, thisPlayerId);
-}
-
-function startGame(room, roomId, thisPlayerId){
+function createGame(room, roomId){
    
     io.to('room'+roomId).emit('start game');
 
@@ -242,23 +238,41 @@ function startGame(room, roomId, thisPlayerId){
             ];
         let direction = { x: 0, y: -1 };
         room.members[memberIndex].number = memberIndex;
-        let player = {id:thisPlayerId, body:snakeBody, direction:direction, number:memberIndex, colour: randomColour()};
-
+        let player = {id:room.members[memberIndex].id, body:snakeBody, direction:direction, number:memberIndex, colour: randomColour()};
+        io.to('room'+roomId).emit('set colour', {colour:player.colour, id:player.id});
         //let player = {body:snakeBody, direction};
         gameState.push(player);
         //gameState[playerNumber] = player;
     }
-    updateGame(gameState, roomId);
+    io.to('room'+roomId).emit('update game', gameState);
+    countdownGame(room, roomId, 5, gameState);
+    //updateGame(gameState, roomId, 6);
 }
 
-function updateGame(gameState, roomId) {
+function countdownGame(room, roomId, counter, gameState){
+    
+    if (counter > 0)
+        setTimeout(function() { 
+        counter--;
+        countdownGame(room, roomId, counter, gameState);
+    }, 1000);
+    else
+        updateGame(gameState, roomId, 6);
+}
+
+function updateGame(gameState, roomId, counter) {
     updateSnake(gameState);
+    let speed = 1000;
+    if (counter < 1)
+        speed = 200;
+    else
+        counter--;
 
     io.to('room'+roomId).emit('update game', gameState);
     if (gameState == gameStates[roomId]) { // If gameState variable has changed, the loop ends.
         setTimeout(function() { 
-            updateGame(gameState, roomId);
-        }, 300);
+            updateGame(gameState, roomId, counter);
+        }, speed);
     }
 }
 

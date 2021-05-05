@@ -102,10 +102,6 @@ socket.on('update rooms', function(rooms){
    updateRooms(rooms);
 });
 
-socket.on('start game', () => {
-    start();
-});
-
 const loginScreen = document.getElementById("login");
 //const inGameScreen = document.getElementById('ingame');
 
@@ -127,12 +123,42 @@ multiButton.addEventListener('click', newMultiplayer);
 let multiplayer = false;
 
 function newSingleplayer(){
-    pregameScreen.style.display = "block";
     socket.emit('leave multiplayer');
     loginScreen.style.display = "none";
+    pregameScreen.style.display = "block";
+    gameScreen.style.display = "grid";
+    drawSnake();
     countdownDisplay.innerText = 5;
     countdown(5);
 }
+
+const colourBlock = document.createElement('button');
+colourBlock.float = "left";
+
+socket.on('set colour', (player) => {
+
+    if (player.id == clientId) {
+        colourBlock.style.backgroundColor = player.colour;
+        colourBlock.style.border = "2px solid black";
+        colourBlock.style.color = player.colour;
+    }
+});
+
+socket.on('start game', () => {
+    loginScreen.style.display = "none";
+    pregameScreen.style.display = "block";
+    let info = document.getElementById("info");
+    const label = document.createElement('label');
+    label.innerHTML = "Your colour is: ";
+    label.float = "right";
+    colourBlock.innerText = "llllllllllllllllllllllll";
+    info.appendChild(label);
+    info.appendChild(colourBlock);
+    gameScreen.style.display = "grid";
+    countdownDisplay.innerText = 5;
+    countdown(5);
+    //start();
+});
 
 const countdownDisplay = document.getElementById("timer");
 
@@ -145,14 +171,15 @@ function countdown(counter){
         }, 1000);
     else {
         countdownDisplay.innerText = "";
+        //pregameScreen.style.display = "none";
         pregameScreen.style.display = "none";
-        start();
         if (!multiplayer)
             window.requestAnimationFrame(main);
     }
 }
 
 const roomsList = document.getElementById("rooms");
+
 
 function newMultiplayer(){
     roomsList.style.display = "block";
@@ -164,11 +191,12 @@ function newMultiplayer(){
     socket.emit('get rooms');
 }
 
-function start(){
+//function start(){
     //loginScreen.style.display = "none";
     //inGameScreen.style.display = "block";
-    gameScreen.style.display = "grid";
-}
+    //pregameScreen.style.display = "none";
+    //gameScreen.style.display = "grid";
+//}
 
 function setReady(){
     socket.emit('set ready');
@@ -176,7 +204,7 @@ function setReady(){
     socket.emit('update all rooms');
 }
 
-socket.on('update game', (gameState) => {
+socket.on('update game', (gameState) => {    
     draw(gameState);
     multiplayer = true;
 });

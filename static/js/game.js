@@ -11,6 +11,8 @@ function main(currentTime) {
 
     updateSnake()
     drawSnake();
+    drawFood();
+    gameOver();
 }
 
 const snakeBody = [
@@ -77,23 +79,50 @@ function updateSnake() {
     snakeBody.pop();
 }
 
+function drawFood() {
+    let oldFoodElement = document.getElementById('food');
+    if(oldFoodElement != null){
+        oldFoodElement.remove();
+    } 
+    const foodElement = document.createElement('div');
+    foodElement.id = "food";
+    foodElement.style.gridRowStart = Math.floor(Math.random() * 35);
+    foodElement.style.gridColumnStart = Math.floor(Math.random() * 35); 
+    foodElement.classList.add('food');
+    gameScreen.appendChild(foodElement);
+}
+    
 
 document.addEventListener('keydown', changeDirection);
 
 function changeDirection(key) {
+    const goingUp = direction.y === -1;
+    const goingRight = direction.x === 1; 
+    const goingDown = direction.y === 1;
+    const goingLeft = direction.x === -1; 
 
-    if (key.keyCode === 37) { //left
+    if (key.keyCode === 37 && !goingRight) { //left
         direction = { x: -1, y: 0 };
     }
-    if (key.keyCode === 38 ) { // up
+    if (key.keyCode === 38 && !goingDown) { // up
         direction = { x: 0, y: -1 };
     }
-    if (key.keyCode === 39 ) { // right
+    if (key.keyCode === 39 && !goingLeft) { // right
         direction = { x: 1, y: 0 };
     }
-    if (key.keyCode === 40 ) { // down
+    if (key.keyCode === 40 && !goingUp) { // down
         direction = { x: 0, y: 1 };
     }
     if (multiplayer)
         socket.emit('update direction', direction);
 }
+
+function gameOver() {
+    if(snakeBody[0].x < 0 || snakeBody[0].x > 36) {
+        alert("Game over - You hit the wall");
+    }
+    if(snakeBody[0].y < 0 || snakeBody[0].y > 36) {
+        alert("Game over - You hit the wall");
+    }
+}
+    

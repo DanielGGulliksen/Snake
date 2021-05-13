@@ -1,3 +1,4 @@
+//var socket = io.connect('https://localhost:5000', {
 var socket = io.connect('http://localhost:5000', {
     'sync disconnect on unload': true
 });
@@ -120,14 +121,12 @@ const multiButton = document.getElementById("multi");
 singleButton.addEventListener('click', newSingleplayer);
 multiButton.addEventListener('click', newMultiplayer);
 
-let multiplayer = false;
-
 function newSingleplayer(){
+    socket.emit('start singleplayer')
     socket.emit('leave multiplayer');
     loginScreen.style.display = "none";
     pregameScreen.style.display = "block";
     gameScreen.style.display = "grid";
-    drawSnake();
     countdownDisplay.innerText = 5;
     countdown(5);
 }
@@ -157,7 +156,6 @@ socket.on('start game', () => {
     gameScreen.style.display = "grid";
     countdownDisplay.innerText = 5;
     countdown(5);
-    //start();
 });
 
 const countdownDisplay = document.getElementById("timer");
@@ -171,15 +169,11 @@ function countdown(counter){
         }, 1000);
     else {
         countdownDisplay.innerText = "";
-        //pregameScreen.style.display = "none";
         pregameScreen.style.display = "none";
-        if (!multiplayer)
-            window.requestAnimationFrame(main);
     }
 }
 
 const roomsList = document.getElementById("rooms");
-
 
 function newMultiplayer(){
     roomsList.style.display = "block";
@@ -191,13 +185,6 @@ function newMultiplayer(){
     socket.emit('get rooms');
 }
 
-//function start(){
-    //loginScreen.style.display = "none";
-    //inGameScreen.style.display = "block";
-    //pregameScreen.style.display = "none";
-    //gameScreen.style.display = "grid";
-//}
-
 function setReady(){
     socket.emit('set ready');
     document.getElementById('feedback').innerText = '(Your are ready)';
@@ -205,6 +192,6 @@ function setReady(){
 }
 
 socket.on('update game', (gameState) => {    
-    draw(gameState);
-    multiplayer = true;
+    drawSnake(gameState);
+    drawFood(gameState.food[0]);
 });

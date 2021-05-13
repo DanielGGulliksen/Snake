@@ -1,5 +1,6 @@
 function drawSnake(gameState) {
-        let segment = 0;
+
+    let segment = 0;
     gameState.players.forEach(player => {
 
             let shownHead = false;
@@ -28,9 +29,9 @@ function drawSnake(gameState) {
 
 function drawFood(food) {
     let oldFoodElement = document.getElementById('food');
-    if(oldFoodElement != null){
+    if(oldFoodElement != null)
         oldFoodElement.remove();
-    }
+
     const foodElement = document.createElement('div');
     foodElement.id = "food";
     foodElement.style.gridColumnStart = food.x;
@@ -39,6 +40,23 @@ function drawFood(food) {
     gameScreen.appendChild(foodElement);
 }
     
+
+
+/*
+function eatFood() {
+    head = {x: snakeBody[0].x + direction.x, y: snakeBody[0].y + direction.y};
+    if(snakeBody[0].x == food.y && snakeBody[0].y == food.x) {
+        console.log(food.x + ", " + food.y);
+        food.x = Math.floor(Math.random() * 33) + 1;
+        food.y = Math.floor(Math.random() * 33) + 1; 
+        drawFood();
+        snakeBody.unshift(head);
+        
+    } 
+} 
+*/
+
+
 let direction = { x: 0, y: -1 };
 
 document.addEventListener('keydown', changeDirection);
@@ -64,6 +82,7 @@ function changeDirection(key) {
     socket.emit('update direction', direction);
 }
 
+/*
 function gameOver() {
     if(snakeBody[0].x < 0 || snakeBody[0].x > 36) {
         alert("Game over - You hit the wall");
@@ -72,4 +91,4 @@ function gameOver() {
         alert("Game over - You hit the wall");
     }
 }
-    
+    */

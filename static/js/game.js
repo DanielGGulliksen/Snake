@@ -12,7 +12,8 @@ function main(currentTime) {
     updateSnake()
     drawSnake();
     drawFood();
-    gameOver();
+    //gameOver();
+    eatFood(); 
 }
 
 const snakeBody = [
@@ -20,6 +21,11 @@ const snakeBody = [
     { x: 11, y: 22 },
     { x: 11, y: 23 }
     ];
+
+ let food = {
+    x: Math.floor(Math.random() * 33) +1,
+    y: Math.floor(Math.random() * 33) +1
+}
 
 let direction = { x: 0, y: -1 };
 
@@ -83,15 +89,34 @@ function drawFood() {
     let oldFoodElement = document.getElementById('food');
     if(oldFoodElement != null){
         oldFoodElement.remove();
-    } 
+    }  
     const foodElement = document.createElement('div');
     foodElement.id = "food";
-    foodElement.style.gridRowStart = Math.floor(Math.random() * 35);
-    foodElement.style.gridColumnStart = Math.floor(Math.random() * 35); 
+    foodElement.style.gridRowStart = food.x; //Math.floor(Math.random() * 35);
+    foodElement.style.gridColumnStart = food.y //Math.floor(Math.random() * 35); 
     foodElement.classList.add('food');
     gameScreen.appendChild(foodElement);
 }
-    
+
+/*
+food = {
+    x: Math.floor(Math.random() * 35),
+    y: Math.floor(Math.random() * 35)
+}
+*/
+
+function eatFood() {
+    head = {x: snakeBody[0].x + direction.x, y: snakeBody[0].y + direction.y};
+    if(snakeBody[0].x == food.y && snakeBody[0].y == food.x) {
+        console.log(food.x + ", " + food.y);
+        food.x = Math.floor(Math.random() * 33) + 1;
+        food.y = Math.floor(Math.random() * 33) + 1; 
+        drawFood();
+        snakeBody.unshift(head);
+        
+    } 
+
+}  
 
 document.addEventListener('keydown', changeDirection);
 
@@ -117,6 +142,7 @@ function changeDirection(key) {
         socket.emit('update direction', direction);
 }
 
+/*
 function gameOver() {
     if(snakeBody[0].x < 0 || snakeBody[0].x > 36) {
         alert("Game over - You hit the wall");
@@ -125,4 +151,4 @@ function gameOver() {
         alert("Game over - You hit the wall");
     }
 }
-    
+    */

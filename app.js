@@ -293,8 +293,7 @@ function createGame(room, roomId){
             { x: x, y: y+2 }
         ];
 
-        /*
-        let occupied = checkOccupied(gameState.players, snakeBody);
+        let occupied = checkOccupied(gameState.players, {body:snakeBody});
         while (occupied){
             x = Math.floor(Math.random() * 33) + 1;
             y = Math.floor(Math.random() * 33) + 1;
@@ -303,10 +302,9 @@ function createGame(room, roomId){
                 { x: x, y: y+1 },
                 { x: x, y: y+2 }
             ];
-            occupied = checkOccupied(gameState.players, snakeBody);
+            occupied = checkOccupied(gameState.players, {body:snakeBody});
         }
-        */
-
+        
         let direction = { x: 0, y: -1 };
         room.members[memberIndex].number = memberIndex;
         let player = {id:room.members[memberIndex].id, body:snakeBody, direction:direction, present:true, number:memberIndex, colour: randomColour(), borderColour: randomColour(), alive:true};
@@ -317,25 +315,45 @@ function createGame(room, roomId){
     }
 
     gameState.food = generateFood();
+    
+    let occupied = checkOccupied(gameState.players, gameState.food);
+    while (occupied){
+        gameState.food = generateFood();
+        occupied = checkOccupied(gameState.players, gameState.food);
+    }
 
     io.to('room'+roomId).emit('update game', gameState);
     countdownGame(room, roomId, 3, gameState, "");
 }
 
 function checkOccupied(players, item){
-    
-    players.forEach(player => {
-        player.body.forEach(part => {
 
-        });
+    let occupied = false;
+    const head = item.body[0];
+    players.forEach(player => {
+        if (item.id != undefined){
+            if (player.id != item.id){
+                player.body.forEach(part => {
+                    //console.log("x: "+part.y + ", " + head.y +". y: "+ part.x +", "+head.x);
+                    if (part.x == head.x && part.y == head.y){
+                        occupied = true;
+                    }
+                });
+            }
+        }
     });
+    return occupied;
 }
 
 function generateFood(){
-    return [{
-        x: Math.floor(Math.random() * 33) + 1,
-        y: Math.floor(Math.random() * 33) + 1
-    }]
+    return {
+        body:[
+            {
+            x: Math.floor(Math.random() * 33) + 1,
+            y: Math.floor(Math.random() * 33) + 1
+            }
+        ]
+    }
 }
 
 function createSingleplayer(thisPlayerId){
@@ -376,7 +394,6 @@ function updateGame(gameState, roomId, counter, thisPlayerId) {
         counter--;
 
     //if (gameState.players.length > 0){
-    //console.log(gameState.ongoing);
     if (gameState.ongoing){
         if (roomId != -1){
             io.to('room'+roomId).emit('update game', gameState);
@@ -421,8 +438,11 @@ function updateSnake(gameState) {
                 if (player.alive){
                     player.body.unshift(head);
                     player.body.pop();
-                    if (hitWall(player.body))
+                    let occupied = checkOccupied(gameState.players, player);
+                    
+                    if (hitWall(player.body) || occupied){
                         player.alive = false;
+                    }
                 }
                 else {
                     player.body.shift();

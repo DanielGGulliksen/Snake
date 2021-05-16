@@ -198,7 +198,7 @@ function setReady(){
 
 socket.on('update game', (gameState) => {    
     drawSnakes(gameState);
-    drawFood(gameState.food[0]);
+    drawFood(gameState.food.body[0]);
 });
 
 socket.on('game over', () => {

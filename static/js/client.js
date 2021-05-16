@@ -36,14 +36,14 @@ socket.on('update players', function(players){
 
 function createRoom(){
     socket.emit('create room');
-    multiButton.className = 'loginButton';
-    multiButton.disabled = false;
+    startButton.className = 'loginButton';
+    startButton.disabled = false;
 }
 
 function joinRoom(roomId){
     socket.emit('join room', {"roomId": roomId});
-    multiButton.className = 'loginButton';
-    multiButton.disabled = false;
+    startButton.className = 'loginButton';
+    startButton.disabled = false;
 }
 
 function showReady(username, ready){
@@ -104,22 +104,24 @@ socket.on('update rooms', function(rooms){
 });
 
 const loginScreen = document.getElementById("login");
-//const inGameScreen = document.getElementById('ingame');
 
 const gameScreen = document.getElementById('game');
 
 const pregameScreen = document.getElementById("pregame");
+const postgameScreen = document.getElementById('postgame');
 
-//inGameScreen.style.display = "none";
+postgameScreen.style.display = "none";
 pregameScreen.style.display = "none";
 gameScreen.style.display = "none";
 
-
 const singleButton = document.getElementById("single");
 const multiButton = document.getElementById("multi");
+const startButton = document.getElementById("start");
+startButton.style.display = "none";
 
 singleButton.addEventListener('click', newSingleplayer);
 multiButton.addEventListener('click', newMultiplayer);
+startButton.addEventListener('click', setReady);
 
 function newSingleplayer(){
     socket.emit('start singleplayer')
@@ -127,8 +129,8 @@ function newSingleplayer(){
     loginScreen.style.display = "none";
     pregameScreen.style.display = "block";
     gameScreen.style.display = "grid";
-    countdownDisplay.innerText = 5;
-    countdown(5);
+    countdownDisplay.innerText = 3;
+    countdown(3);
 }
 
 const colourBlock = document.createElement('button');
@@ -138,24 +140,27 @@ socket.on('set colour', (player) => {
 
     if (player.id == clientId) {
         colourBlock.style.backgroundColor = player.colour;
-        colourBlock.style.border = "2px solid black";
+        colourBlock.style.border = "2px solid";
+        colourBlock.style.borderColor = player.borderColour;
         colourBlock.style.color = player.colour;
     }
 });
+
+const label = document.createElement('label');
 
 socket.on('start game', () => {
     loginScreen.style.display = "none";
     pregameScreen.style.display = "block";
     let info = document.getElementById("info");
-    const label = document.createElement('label');
+    label.id = "yourColour";
     label.innerHTML = "Your colour is: ";
     label.float = "right";
     colourBlock.innerText = "llllllllllllllllllllllll";
     info.appendChild(label);
     info.appendChild(colourBlock);
     gameScreen.style.display = "grid";
-    countdownDisplay.innerText = 5;
-    countdown(5);
+    countdownDisplay.innerText = 3;
+    countdown(3);
 });
 
 const countdownDisplay = document.getElementById("timer");
@@ -177,21 +182,46 @@ const roomsList = document.getElementById("rooms");
 
 function newMultiplayer(){
     roomsList.style.display = "block";
-    multiButton.removeEventListener('click', newMultiplayer);
-    multiButton.innerText = "Start";
-    multiButton.disabled = true;
-    multiButton.className = 'greyedOut';
-    multiButton.addEventListener('click', setReady);
+    multiButton.style.display = "none";
+    startButton.disabled = true;
+    startButton.style.display = "inline-block";
     socket.emit('get rooms');
 }
 
+const feedback = document.getElementById('feedback');
+
 function setReady(){
     socket.emit('set ready');
-    document.getElementById('feedback').innerText = '(Your are ready)';
+    feedback.innerText = '(Your are ready)';
     socket.emit('update all rooms');
 }
 
 socket.on('update game', (gameState) => {    
-    drawSnake(gameState);
+    drawSnakes(gameState);
     drawFood(gameState.food[0]);
+});
+
+socket.on('game over', () => {
+    postgameScreen.style.display = "inline-block";
+});
+
+function toHome(){
+    socket.emit('leave multiplayer');
+    postgameScreen.style.display = "none";
+    gameScreen.style.display = "none";
+    loginScreen.style.display = "block";
+    feedback.innerText = "";
+    socket.emit('get rooms');
+
+    startButton.style.display = "none";
+    startButton.disabled = true;
+    startButton.className = "greyedOut";
+
+    multiButton.style.display = "inline-block";
+}
+
+socket.on('screen refresh', () => {
+    
+    gameScreen.innerHTML = "";
+    
 });

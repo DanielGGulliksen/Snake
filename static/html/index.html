@@ -14,7 +14,9 @@
         <h1>Snake</h1>
         <button id="single" type="submit" class="loginButton">Singleplayer</button> <br/><br/>
         
-        <button id="multi" type="submit" class="loginButton">Multiplayer</button><div id="feedback" class='feedback'></div> <br/><br/>
+        <button id="multi" type="submit" class="loginButton">Multiplayer</button>
+        <button id="start" type="submit" class="greyedOut">Start</button>
+        <div id="feedback" class='feedback'></div> <br/><br/>
             <div id="rooms" style="display: none;">
                 <label>Rooms:</label> <br/>
                 <div id="existingRooms"></div>
@@ -36,6 +38,11 @@
     <!-- <div id='ingame'> <div id="info" class="info">Worked</div> </div> -->
 
     <div id="game"></div>
+
+    <div id="postgame" class="postgame">
+        <h1 style="font-size: 20px;">Leaderboard</h1>
+        <button onclick="toHome();">Home</button>
+    </div>
     
 
 <script type="text/javascript" src="static/js/client.js"></script>

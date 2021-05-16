@@ -48,3 +48,17 @@ body {
     
     padding: 10px;
 }
+
+.postgame {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    background-color: rgb(14, 19, 37);;
+    margin: auto;
+    text-align: center;
+    width: 60%;
+    
+    padding: 10px;
+}

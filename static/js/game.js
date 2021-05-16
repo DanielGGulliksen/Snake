@@ -1,28 +1,36 @@
-function drawSnake(gameState) {
+function drawSnakes(gameState) {
 
-    let segment = 0;
-    gameState.players.forEach(player => {
+        let segment = 0;
+        gameState.players.forEach(player => {
 
-            let shownHead = false;
-            const snakeBody = player.body;
-            snakeBody.forEach(part => {
-                let oldSegment = document.getElementById(""+segment);
-                if (oldSegment != null)
-                    oldSegment.remove();
+                let shownHead = false;
+                const snakeBody = player.body;
+                snakeBody.forEach(part => {
+                    let oldSegment = document.getElementById(""+segment);
+                    if (oldSegment != null)
+                        oldSegment.remove();
             
-                const snakeElement = document.createElement('div');
-                if (!shownHead){
-                    snakeElement.innerText = "^^";
-                    shownHead = true;
-                }
-                snakeElement.id = segment;
-                segment++;
-                snakeElement.style.gridColumnStart = part.x;
-                snakeElement.style.gridRowStart = part.y;
-                snakeElement.style.backgroundColor = player.colour;
-                snakeElement.classList.add('snake');
-                gameScreen.appendChild(snakeElement);
-            });
+                    const snakeElement = document.createElement('div');
+                    
+                    if (player.alive) {
+                        if (!shownHead){
+                            snakeElement.innerText = "^^";
+                            shownHead = true;
+                        }
+                    }
+                    else
+                        snakeElement.innerText = "!";
+
+                    snakeElement.id = segment;
+                    segment++;
+                    snakeElement.style.gridColumnStart = part.x;
+                    snakeElement.style.gridRowStart = part.y;
+                    snakeElement.style.backgroundColor = player.colour;
+                    snakeElement.style.border = "2px solid";
+                    snakeElement.style.borderColor = player.borderColour;
+                    snakeElement.classList.add('snake');
+                    gameScreen.appendChild(snakeElement);
+                });
             
     });
 }
@@ -40,8 +48,6 @@ function drawFood(food) {
     gameScreen.appendChild(foodElement);
 }
     
-
-
 /*
 function eatFood() {
     head = {x: snakeBody[0].x + direction.x, y: snakeBody[0].y + direction.y};
@@ -81,14 +87,3 @@ function changeDirection(key) {
     }
     socket.emit('update direction', direction);
 }
-
-/*
-function gameOver() {
-    if(snakeBody[0].x < 0 || snakeBody[0].x > 36) {
-        alert("Game over - You hit the wall");
-    }
-    if(snakeBody[0].y < 0 || snakeBody[0].y > 36) {
-        alert("Game over - You hit the wall");
-    }
-}
-    */

@@ -86,7 +86,7 @@ io.on('connection', function(socket){
                     }
                 }
             }
-            if (thisPlayer.currentRoomId != undefined)    //
+            if (thisPlayer.currentRoomId != undefined)
                 if (gameStates[thisPlayer.currentRoomId] != undefined)
                     gameStates[thisPlayer.currentRoomId] = {};
 
@@ -138,7 +138,26 @@ io.on('connection', function(socket){
             io.sockets.emit('update rooms', rooms);
         });
 
-        socket.on('get rooms', () => socket.emit('update rooms', rooms));
+        socket.on('get rooms', () => {
+
+            for (var room in rooms){
+                const gameState = gameStates[room];
+                if (gameState != undefined){
+
+                    if (gameState.players != undefined){
+                        if (!gameState.ongoing){
+                            for (var player in gameState.players){
+                                gameState.players.pop();
+                            }
+                            //if (gameState.players.length < 1)
+                            refreshRoom(gameState);
+                        }
+                    }
+                }
+            }
+
+            socket.emit('update rooms', rooms);
+        });
 
         socket.on('update all rooms', () => io.sockets.emit('update', rooms));
 
@@ -237,16 +256,21 @@ io.on('connection', function(socket){
                 room.inGame = true;
                 io.sockets.emit('update rooms', rooms);
                 createGame(room, thisPlayer.currentRoomId);
+                for (var member in room.members){
+                    room.members[member].ready = false;
+                }
             }
             else
                 io.sockets.emit('update rooms', rooms);
         });
 
         socket.on('update direction', function(direction){
+            
             if (thisPlayer.currentRoomId != undefined)
                 changeDirection(direction, thisPlayer.number, thisPlayer.currentRoomId);
             else
-                singleplayerGameState.players[0].direction = direction;
+                if (singleplayerGameState.players != undefined)
+                    singleplayerGameState.players[0].direction = direction;
         });
 });
 
@@ -257,10 +281,12 @@ function createGame(room, roomId){
     gameStates[roomId] = {};
     let gameState = gameStates[roomId];
     gameState.players = [];
+    gameState.roomId = roomId;
+    gameState.ongoing = true;
 
     for (var memberIndex in room.members){
-        let x = Math.floor(Math.random() * 33) + 1;
-        let y = Math.floor(Math.random() * 33) + 1;
+        let x = Math.floor(Math.random() * 30) + 1;
+        let y = Math.floor(Math.random() * 30) + 1;
         let snakeBody = [
             { x: x, y: y },
             { x: x, y: y+1 },
@@ -268,8 +294,8 @@ function createGame(room, roomId){
         ];
 
         /*
-        let notOccupied = checkOccupied(gameState.players, snakeBody);
-        while (!notOccupied){
+        let occupied = checkOccupied(gameState.players, snakeBody);
+        while (occupied){
             x = Math.floor(Math.random() * 33) + 1;
             y = Math.floor(Math.random() * 33) + 1;
             snakeBody = [
@@ -277,14 +303,15 @@ function createGame(room, roomId){
                 { x: x, y: y+1 },
                 { x: x, y: y+2 }
             ];
-            notOccupied = checkOccupied(gameState.players, snakeBody);
+            occupied = checkOccupied(gameState.players, snakeBody);
         }
         */
 
         let direction = { x: 0, y: -1 };
         room.members[memberIndex].number = memberIndex;
-        let player = {id:room.members[memberIndex].id, body:snakeBody, direction:direction, number:memberIndex, colour: randomColour()};
-        io.to('room'+roomId).emit('set colour', {colour:player.colour, id:player.id});
+        let player = {id:room.members[memberIndex].id, body:snakeBody, direction:direction, present:true, number:memberIndex, colour: randomColour(), borderColour: randomColour(), alive:true};
+    
+        io.to('room'+roomId).emit('set colour', {colour:player.colour, id:player.id, borderColour:player.borderColour});
 
         gameState.players.push(player);
     }
@@ -292,14 +319,7 @@ function createGame(room, roomId){
     gameState.food = generateFood();
 
     io.to('room'+roomId).emit('update game', gameState);
-    countdownGame(room, roomId, 5, gameState, "");
-}
-
-function generateFood(){
-    return [{
-        x: Math.floor(Math.random() * 33) + 1,
-        y: Math.floor(Math.random() * 33) + 1
-    }]
+    countdownGame(room, roomId, 3, gameState, "");
 }
 
 function checkOccupied(players, item){
@@ -311,21 +331,29 @@ function checkOccupied(players, item){
     });
 }
 
+function generateFood(){
+    return [{
+        x: Math.floor(Math.random() * 33) + 1,
+        y: Math.floor(Math.random() * 33) + 1
+    }]
+}
+
 function createSingleplayer(thisPlayerId){
     
     let gameState = {};
-    const x = Math.floor(Math.random() * 35);
-    const y = Math.floor(Math.random() * 35);
+    const x = Math.floor(Math.random() * 30) + 1;
+    const y = Math.floor(Math.random() * 30) + 1;
     let snakeBody = [
         { x: x, y: y },
         { x: x, y: y+1 },
         { x: x, y: y+2 }
         ];
     let direction = { x: 0, y: -1 };
-    let player = {id:thisPlayerId, body:snakeBody, direction:direction, number:0, colour: randomColour()};
+    let player = {id:thisPlayerId, body:snakeBody, direction:direction, present:true, alive:true, number:0, colour: randomColour(), borderColour: randomColour()};
     gameState.players = [player];
+    gameState.ongoing = true;
     gameState.food = generateFood();
-    countdownGame(-1, -1, 5, gameState, thisPlayerId);
+    countdownGame(-1, -1, 3, gameState, thisPlayerId);
     return gameState;
 }
 
@@ -336,7 +364,7 @@ function countdownGame(room, roomId, counter, gameState, thisPlayerId){
         countdownGame(room, roomId, counter, gameState, thisPlayerId);
     }, 1000);
     else
-        updateGame(gameState, roomId, 3, thisPlayerId);
+        updateGame(gameState, roomId, 0, thisPlayerId);
 }
 
 function updateGame(gameState, roomId, counter, thisPlayerId) {
@@ -346,36 +374,98 @@ function updateGame(gameState, roomId, counter, thisPlayerId) {
         speed = 200;
     else
         counter--;
-    if (roomId != -1){
-        io.to('room'+roomId).emit('update game', gameState);
-        if (gameState == gameStates[roomId]) { // If gameState variable has changed, the loop ends.
+
+    //if (gameState.players.length > 0){
+    //console.log(gameState.ongoing);
+    if (gameState.ongoing){
+        if (roomId != -1){
+            io.to('room'+roomId).emit('update game', gameState);
+            if (gameState == gameStates[roomId]) { // If gameState variable has changed, the loop ends.
+                setTimeout(function() { 
+                    updateGame(gameState, roomId, counter, thisPlayerId);
+                }, speed);
+            }
+        } else {
+            io.to(thisPlayerId).emit('update game', gameState);
             setTimeout(function() { 
                 updateGame(gameState, roomId, counter, thisPlayerId);
             }, speed);
         }
-    } else {
-        io.to(thisPlayerId).emit('update game', gameState);
-        setTimeout(function() { 
-            updateGame(gameState, roomId, counter, thisPlayerId);
-        }, speed);
-    }
+    }      
+}
+
+function refreshRoom(gameState){
+    
+//if (gameState.players.length < 1) {
+        if (gameState.roomId != undefined) {
+            rooms[gameState.roomId] = undefined;
+        }
+        io.to("room"+gameState.roomId).emit('update rooms', rooms);
+        gameState = {};
+//    }        
 }
 
 function changeDirection(direction, playerNumber, currentRoomId){
         let gameState = gameStates[currentRoomId];
-        gameState.players[playerNumber].direction = direction;
+        if (gameState.players[playerNumber] != undefined)
+            gameState.players[playerNumber].direction = direction;
 }
 
 function updateSnake(gameState) {
-        gameState.players.forEach(player => {
-            
-                const head = {x: player.body[0].x + player.direction.x, y: player.body[0].y + player.direction.y};
-                player.body.unshift(head);
-                player.body.pop();
-            
-        });
+    let remaining = false;
+    gameState.players.forEach(player => {
+       
+        if (player.body.length > 0){
+            remaining = true;                 
+            const head = {x: player.body[0].x + player.direction.x, y: player.body[0].y + player.direction.y};
+                if (player.alive){
+                    player.body.unshift(head);
+                    player.body.pop();
+                    if (hitWall(player.body))
+                        player.alive = false;
+                }
+                else {
+                    player.body.shift();
+                }
+        }
+        else {
+            if (player.present){
+                //player.body.pop();
+                gameOver(player.id);
+                io.to("room"+gameState.roomId).emit('screen refresh');
+                player.present = false;
+            }
+        }
+    });
+    if (!remaining)
+        gameState.ongoing = false;
 }
-  
+
+function gameOver(playerId){
+    
+    for (var player in players){
+
+        if (players[player] != undefined)
+            if (players[player].id == playerId){
+                players[player].currentRoomId = undefined;
+                break;
+            }
+    }
+    
+    io.to(playerId).emit('game over');
+}
+
+function hitWall(snakeBody) {
+    if(snakeBody[0].x < 1 || snakeBody[0].x > 35) {
+        return true;
+    }
+    if(snakeBody[0].y < 1 || snakeBody[0].y > 35) {
+        return true;
+    }
+    return false;
+}
+
+
 function randomColour() {
     var colour = values => `rgb(${values})`;
    

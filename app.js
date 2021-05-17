@@ -332,13 +332,17 @@ function checkOccupied(players, item){
     const head = item.body[0];
     players.forEach(player => {
         if (item.id != undefined){
-            if (player.id != item.id){
-                player.body.forEach(part => {
-                    //console.log("x: "+part.y + ", " + head.y +". y: "+ part.x +", "+head.x);
-                    if (part.x == head.x && part.y == head.y){
-                        occupied = true;
-                    }
-                });
+            
+            let part = 0;
+            if (player.id == item.id)
+                part++;
+            
+            while (part < player.body.length){
+
+                if (player.body[part].x == head.x && player.body[part].y == head.y){
+                    occupied = true;
+                }
+                part++;
             }
         }
     });
@@ -437,7 +441,12 @@ function updateSnake(gameState) {
             const head = {x: player.body[0].x + player.direction.x, y: player.body[0].y + player.direction.y};
                 if (player.alive){
                     player.body.unshift(head);
-                    player.body.pop();
+                    //console.log("x: "+head.x+", "+gameState.food.body[0].x+". y: "+head.y+", "+gameState.food.body[0].y);
+                    if(head.x == gameState.food.body[0].x && head.y == gameState.food.body[0].y)
+                        gameState.food = generateFood();
+                    else
+                        player.body.pop();
+
                     let occupied = checkOccupied(gameState.players, player);
                     
                     if (hitWall(player.body) || occupied){
@@ -450,7 +459,7 @@ function updateSnake(gameState) {
         }
         else {
             if (player.present){
-                //player.body.pop();
+                player.body.pop();
                 gameOver(player.id);
                 io.to("room"+gameState.roomId).emit('screen refresh');
                 player.present = false;

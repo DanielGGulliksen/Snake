@@ -1,19 +1,31 @@
 const express = require('express');
 var socket = require('socket.io');
 
+const app = express();
+
+/* The section below is used to export the server's performance metrics
+*  to the Prometheus monitioring system
+*/
+const client = require('prom-client');
+const collectDefaultMetrics = client.collectDefaultMetrics;
+
+collectDefaultMetrics({ timeout: 30000 });
+
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', client.register.contentType);
+    res.end(await client.register.metrics());
+});
+// Prometheus end
+
+
+
 /*
 const https = require('https')
 const fs = require('fs')
 const path = require('path')
 */
 
-const app = express();
 
-// Static directory 'static' with subdirectiories css, js, and html.
-app.use(express.static('static/html'))
-app.use("/static/js", express.static('./static/js/'))
-app.use("/static/css", express.static('./static/css/'))
-app.use("/static/misc", express.static('./static/misc/'))
 
 /*
 const credentials = {
@@ -32,17 +44,30 @@ var server = app.listen(5000, () => {
     console.log('Listening on port 5000');
 });
 
+// Static directory 'static' contains subdirectiories css, js, misc, and html.
+// the four lines below explicitly provide routes to every file in the project.
+app.use(express.static('static/html'))
+app.use("/static/js", express.static('./static/js/'))
+app.use("/static/css", express.static('./static/css/'))
+app.use("/static/misc", express.static('./static/misc/'))
 
 var io = socket(server);
 
+/* The following dictionaries are universal and used to manage the systems
+*  rooms, players, and game states respectively
+*/
 let rooms = {};
 let players = {};
 let gameStates = {};
 
+
+// The 'socket' variable is different for every client.
 io.on('connection', function(socket){
     
+    // Providing the client with its respective ID so that it can distinguish itself from other clients.
     socket.emit('id', socket.id);    
    
+        // this object is used to manages all data relevant to a specific user.
         let thisPlayer = {"id":socket.id, name: names[Math.floor(Math.random() * 38)]};
         
         let length = Object.keys(players).length;
@@ -56,6 +81,8 @@ io.on('connection', function(socket){
         
         io.sockets.emit('update players', players);
 
+        // The function below is used to handle a user disconnection to avoid storing users
+        // that are no longer connected.
         socket.on('disconnect', function () {
             let found = false;
             let length = Object.keys(players).length;
@@ -93,6 +120,9 @@ io.on('connection', function(socket){
             io.sockets.emit('update players', players);
         });
 
+        // This creates a user room which is isolated from all other rooms.
+        // Rooms are used to facilitate the instansiation of multiple parallel multiplayer games.
+        // This method also ensures that no user is in two rooms simultaneously.
         socket.on('create room', function(){
 
             let length = Object.keys(rooms).length;
@@ -138,6 +168,9 @@ io.on('connection', function(socket){
             io.sockets.emit('update rooms', rooms);
         });
 
+        // This function returns the room dictionary to the client to allow clients to
+        // keep their room overview updated. It also removes rooms that were in game but
+        // are now empty.
         socket.on('get rooms', () => {
 
             for (var room in rooms){
@@ -159,8 +192,11 @@ io.on('connection', function(socket){
             socket.emit('update rooms', rooms);
         });
 
+        // Used to update room overview for all connected clients.
         socket.on('update all rooms', () => io.sockets.emit('update', rooms));
 
+        // Allows users to join a room. It also ensures that no user is in two rooms
+        // simultaneously
         socket.on('join room', function(data){
             let found = false;
             let room = rooms[data.roomId];            
@@ -212,12 +248,18 @@ io.on('connection', function(socket){
             else
                 console.log("room undefined");
         });
+
+        // Singleplayer games have a gamestate that does not belong to any
+        // existing room. The 'singleplayerGameState' variable can only have
+        // one member.
         let singleplayerGameState = {};
         socket.on('start singleplayer', function(){
             singleplayerGameState = createSingleplayer(thisPlayer.id);
             socket.emit('update game', singleplayerGameState);
         });
 
+        // If a user is to start a singleplayer game or close their browser while in a
+        // multiplayer room, this method removes them from their current room.
         socket.on('leave multiplayer', function(){
             const pid = thisPlayer.currentRoomId;
             if (pid != undefined){
@@ -239,6 +281,9 @@ io.on('connection', function(socket){
             }
         });
 
+        // Multiplayer games only start when all members are ready. This method updates the
+        // 'ready' status of a user and starts a multiplayer game if all room members are
+        // ready.
         socket.on('set ready', function(){
             thisPlayer.ready = true;
 
@@ -264,6 +309,7 @@ io.on('connection', function(socket){
                 io.sockets.emit('update rooms', rooms);
         });
 
+        //This method handles direction updates for both multiplayer and singleplayer games.
         socket.on('update direction', function(direction){
             
             if (thisPlayer.currentRoomId != undefined)
@@ -274,6 +320,8 @@ io.on('connection', function(socket){
         });
 });
 
+// This method create a multiplayer game state. This game state is stored in the
+// 'gameStates' dictionary defined earlier.
 function createGame(room, roomId){
    
     io.to('room'+roomId).emit('start game');
@@ -307,7 +355,7 @@ function createGame(room, roomId){
         
         let direction = { x: 0, y: -1 };
         room.members[memberIndex].number = memberIndex;
-        let player = {id:room.members[memberIndex].id, body:snakeBody, direction:direction, present:true, number:memberIndex, colour: randomColour(), borderColour: randomColour(), alive:true};
+        let player = {id:room.members[memberIndex].id, body:snakeBody, direction:direction, present:true, number:memberIndex, colour: randomColour(), borderColour: randomColour(), alive:true, score:0};
     
         io.to('room'+roomId).emit('set colour', {colour:player.colour, id:player.id, borderColour:player.borderColour});
 
@@ -326,6 +374,9 @@ function createGame(room, roomId){
     countdownGame(room, roomId, 3, gameState, "");
 }
 
+// This method is used to avoid generating a game object 'on top' of another.
+// It also is used to check whether a snake has 'crashed' into another snake
+// or itself.
 function checkOccupied(players, item){
 
     let occupied = false;
@@ -349,6 +400,8 @@ function checkOccupied(players, item){
     return occupied;
 }
 
+// This method returns a new 'food' object which is generated on game start
+// and whenever a snake 'eats' it.
 function generateFood(){
     return {
         body:[
@@ -360,6 +413,8 @@ function generateFood(){
     }
 }
 
+// This method is a counterpart to the 'createGame' method previously defined. This
+// method only generates a game state to be used in a singleplayer game instance.
 function createSingleplayer(thisPlayerId){
     
     let gameState = {};
@@ -379,6 +434,9 @@ function createSingleplayer(thisPlayerId){
     return gameState;
 }
 
+// This method avoid starting the game immediately after users have all set their 
+// respective statuses to 'ready'. It calls the 'updateGame' function after
+// a predetermined amount of time.
 function countdownGame(room, roomId, counter, gameState, thisPlayerId){
     if (counter > 0)
         setTimeout(function() { 
@@ -389,6 +447,7 @@ function countdownGame(room, roomId, counter, gameState, thisPlayerId){
         updateGame(gameState, roomId, 0, thisPlayerId);
 }
 
+// This method updates a the game state every second.
 function updateGame(gameState, roomId, counter, thisPlayerId) {
     updateSnake(gameState);
     let speed = 1000;
@@ -415,23 +474,25 @@ function updateGame(gameState, roomId, counter, thisPlayerId) {
     }      
 }
 
+// This method is used to remove empty formerly 'in game' rooms for all clients.
 function refreshRoom(gameState){
     
-//if (gameState.players.length < 1) {
-        if (gameState.roomId != undefined) {
-            rooms[gameState.roomId] = undefined;
-        }
-        io.to("room"+gameState.roomId).emit('update rooms', rooms);
-        gameState = {};
-//    }        
+    if (gameState.roomId != undefined) {
+        rooms[gameState.roomId] = undefined;
+    }
+    io.to("room"+gameState.roomId).emit('update rooms', rooms);
+    gameState = {};        
 }
 
+// This method is used to update the direction of a specific player.
 function changeDirection(direction, playerNumber, currentRoomId){
         let gameState = gameStates[currentRoomId];
         if (gameState.players[playerNumber] != undefined)
             gameState.players[playerNumber].direction = direction;
 }
 
+// This method manages the 'movement' of a snake, the 'growth' of a snake and whether or not
+// the player has lost. 
 function updateSnake(gameState) {
     let remaining = false;
     gameState.players.forEach(player => {
@@ -440,9 +501,10 @@ function updateSnake(gameState) {
             remaining = true;                 
             const head = {x: player.body[0].x + player.direction.x, y: player.body[0].y + player.direction.y};
                 if (player.alive){
+                    
                     player.body.unshift(head);
-                    //console.log("x: "+head.x+", "+gameState.food.body[0].x+". y: "+head.y+", "+gameState.food.body[0].y);
-                    if(head.x == gameState.food.body[0].x && head.y == gameState.food.body[0].y) {
+                    
+                    if(head.x == gameState.food.body[0].x && head.y == gameState.food.body[0].y){
                         gameState.food = generateFood();
                         player.score += 100; 
                     }
@@ -472,20 +534,22 @@ function updateSnake(gameState) {
         gameState.ongoing = false;
 }
 
+// This method removes a player from the room they just lost in. It also initiates
+// the 'game over' screen on the client sides.
 function gameOver(playerId){
     
     for (var player in players){
-
         if (players[player] != undefined)
             if (players[player].id == playerId){
                 players[player].currentRoomId = undefined;
                 break;
             }
     }
-    
     io.to(playerId).emit('game over');
 }
 
+// This method checks whether a snake's 'head' has reached the boundaries of the
+// game map.
 function hitWall(snakeBody) {
     if(snakeBody[0].x < 1 || snakeBody[0].x > 35) {
         return true;
@@ -496,7 +560,7 @@ function hitWall(snakeBody) {
     return false;
 }
 
-
+// This method generates a random colour.
 function randomColour() {
     var colour = values => `rgb(${values})`;
    
@@ -514,6 +578,7 @@ function randomColour() {
     return colour(rgb[0]+","+rgb[1]+","+rgb[2]);
 }
 
+// This list of names is used to distinguish users from each other.
 const names = ['Brian', 'Kiera', 'Treasa', 'Tierney', 'Phelan', 'Eadan', 'Shea', 'Osheen','Murdoch','Pilib',
                'Ronan', 'Keeva', 'Daley', 'Aignes', 'Quinn', 'Nola', 'Rory', 'Conor', 'Ulick', 'Alannah',
                'Moyra', 'Fiona', 'Cathair', 'Toal', 'Catriona', 'Enya', 'Concepta', 'Aoife', 'Niamh', 'Fionntan',

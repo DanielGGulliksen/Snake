@@ -4,12 +4,16 @@
     <meta charset="utf-8">
     <title>Snake</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    
+    <!-- 'login.css' contains all display preferences for the 'login screen' -->
     <link rel="stylesheet" href="static/css/login.css">
-    <link rel="stylesheet" href="static/css/game.css">
 
+    <!-- 'game.css' contains all display preferences for the 'in-game' screen -->
+    <link rel="stylesheet" href="static/css/game.css">
 </head>
 <body>
     
+    <!-- The 'login' div contains all items within the 'login' screen. -->
     <div id="login" class="login">
         <h1>Snake</h1>
         <button id="single" type="submit" class="loginButton">Singleplayer</button> <br/><br/>
@@ -27,6 +31,7 @@
         <label>Players:</label><table id="players"></table>
     </div>
 
+    <!-- The 'pregame' screen appears when a game is commencing. -->
     <div id="pregame" class="pregame">
         <h1 id="timer"></h1> <br/><br/>
         <div id="info"></div>
@@ -35,21 +40,26 @@
         <img src="static/misc/whitearrowkeys.png">
     </div>
 
-    <!-- <div id='ingame'> <div id="info" class="info">Worked</div> </div> -->
-
+    <!-- The 'score' div update the players score in game -->
     <div id="score"></div>
+    
+    <!-- The 'game' div is used to visualize the state of the client's game -->
     <div id="game"></div>
 
-
+    <!-- This div is essentially used as the 'game over' screen -->
     <div id="postgame" class="postgame">
         <h1>Game over</h1>
         <h1 style="font-size: 20px;">Leaderboard</h1>
-        <tabel id = "leaderboard"></tabel>
+        <table id = "leaderboard"></table>
         <button onclick="toHome();">Home</button>
     </div>
     
-
+    
+<!-- 'client.js' handles display -->
 <script type="text/javascript" src="static/js/client.js"></script>
+
+<!-- 'game.js' handles game mechanics -->
 <script type="text/javascript" src="static/js/game.js"></script>
+
 </body>
 </html>

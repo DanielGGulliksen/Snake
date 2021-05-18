@@ -371,7 +371,7 @@ function createSingleplayer(thisPlayerId){
         { x: x, y: y+2 }
         ];
     let direction = { x: 0, y: -1 };
-    let player = {id:thisPlayerId, body:snakeBody, direction:direction, present:true, alive:true, number:0, colour: randomColour(), borderColour: randomColour()};
+    let player = {id:thisPlayerId, body:snakeBody, direction:direction, present:true, alive:true, number:0, colour: randomColour(), borderColour: randomColour(), score: 0};
     gameState.players = [player];
     gameState.ongoing = true;
     gameState.food = generateFood();
@@ -442,8 +442,10 @@ function updateSnake(gameState) {
                 if (player.alive){
                     player.body.unshift(head);
                     //console.log("x: "+head.x+", "+gameState.food.body[0].x+". y: "+head.y+", "+gameState.food.body[0].y);
-                    if(head.x == gameState.food.body[0].x && head.y == gameState.food.body[0].y)
+                    if(head.x == gameState.food.body[0].x && head.y == gameState.food.body[0].y) {
                         gameState.food = generateFood();
+                        player.score += 100; 
+                    }
                     else
                         player.body.pop();
 

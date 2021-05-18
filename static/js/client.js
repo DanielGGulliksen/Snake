@@ -199,7 +199,17 @@ function setReady(){
 socket.on('update game', (gameState) => {    
     drawSnakes(gameState);
     drawFood(gameState.food.body[0]);
+    showScore(gameState);
 });
+
+function showScore(gameState) {
+    gameState.players.forEach(player => {
+        if(player.id == clientId) {
+            document.getElementById('score').innerText = "Score: " + player.score;
+            return; 
+        }
+    });
+}
 
 socket.on('game over', () => {
     postgameScreen.style.display = "inline-block";

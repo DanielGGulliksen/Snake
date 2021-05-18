@@ -1,3 +1,6 @@
+// This method displays all game snakes according to the coordinates from 
+// the provided 'gameState' object. It also clears all displayed game
+// snakes from the previous game state from the screen.
 function drawSnakes(gameState) {
 
         let segment = 0;
@@ -35,6 +38,8 @@ function drawSnakes(gameState) {
     });
 }
 
+// This first removes the previous 'food' object from the client's screen, and then 
+// displays a 'food' object on the clients screen. It also
 function drawFood(food) {
     let oldFoodElement = document.getElementById('food');
     if(oldFoodElement != null)
@@ -48,25 +53,13 @@ function drawFood(food) {
     gameScreen.appendChild(foodElement);
 }
     
-/*
-function eatFood() {
-    head = {x: snakeBody[0].x + direction.x, y: snakeBody[0].y + direction.y};
-    if(snakeBody[0].x == food.y && snakeBody[0].y == food.x) {
-        console.log(food.x + ", " + food.y);
-        food.x = Math.floor(Math.random() * 33) + 1;
-        food.y = Math.floor(Math.random() * 33) + 1; 
-        drawFood();
-        snakeBody.unshift(head);
-        
-    } 
-} 
-*/
-
-
+// The direction object is to be altered according to a user's provided inputs.
 let direction = { x: 0, y: -1 };
 
 document.addEventListener('keydown', changeDirection);
 
+// This method handles the provided users keyboard input and changes the
+// 'direction' object accordingly.
 function changeDirection(key) {
     const goingUp = direction.y == -1;
     const goingRight = direction.x == 1; 

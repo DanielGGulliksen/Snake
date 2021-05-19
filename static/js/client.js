@@ -238,7 +238,7 @@ socket.on('update game', (gameState) => {
     showScore(gameState);
 });
 
-
+// Displays the user's own score on the game screen
 function showScore(gameState) {
     gameState.players.forEach(player => {
         if(player.id == clientId) {

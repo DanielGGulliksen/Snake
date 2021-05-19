@@ -355,6 +355,8 @@ function createGame(room, roomId){
         
         let direction = { x: 0, y: -1 };
         room.members[memberIndex].number = memberIndex;
+
+        //The 'object' contains all relevant data pertaining to specific player.
         let player = {id:room.members[memberIndex].id, body:snakeBody, direction:direction, present:true, number:memberIndex, colour: randomColour(), borderColour: randomColour(), alive:true, score:0};
     
         io.to('room'+roomId).emit('set colour', {colour:player.colour, id:player.id, borderColour:player.borderColour});
@@ -426,6 +428,8 @@ function createSingleplayer(thisPlayerId){
         { x: x, y: y+2 }
         ];
     let direction = { x: 0, y: -1 };
+
+    //The 'object' contains all relevant data pertaining to specific player.
     let player = {id:thisPlayerId, body:snakeBody, direction:direction, present:true, alive:true, number:0, colour: randomColour(), borderColour: randomColour(), score: 0};
     gameState.players = [player];
     gameState.ongoing = true;

@@ -140,6 +140,10 @@ singleButton.addEventListener('click', newSingleplayer);
 multiButton.addEventListener('click', newMultiplayer);
 startButton.addEventListener('click', setReady);
 
+//The playerScore 'div' is used to display the the user's score while in game.
+const playerScore = document.getElementById('score');
+playerScore.style.display = "none";
+
 // This button initializes a single player game.
 function newSingleplayer(){
     socket.emit('start singleplayer')
@@ -186,6 +190,7 @@ socket.on('start game', () => {
     info.appendChild(colourBlock);
     gameScreen.style.display = "grid";
     countdownDisplay.innerText = 3;
+    playerScore.style.display = "block";
     countdown(3);
 });
 
@@ -203,6 +208,7 @@ function countdown(counter){
         }, 1000);
     else {
         countdownDisplay.innerText = "";
+
         pregameScreen.style.display = "none";
     }
 }
@@ -242,7 +248,7 @@ socket.on('update game', (gameState) => {
 function showScore(gameState) {
     gameState.players.forEach(player => {
         if(player.id == clientId) {
-            document.getElementById('score').innerText = "Score: " + player.score;
+            playerScore.innerText = "Score: " + player.score;
             return; 
         }
     });
@@ -257,6 +263,7 @@ socket.on('game over', () => {
 function toHome(){
     socket.emit('leave multiplayer');
     postgameScreen.style.display = "none";
+    playerScore.style.display = "none";
     gameScreen.style.display = "none";
     loginScreen.style.display = "block";
     feedback.innerText = "";

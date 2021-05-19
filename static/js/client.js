@@ -208,7 +208,7 @@ function countdown(counter){
         }, 1000);
     else {
         countdownDisplay.innerText = "";
-
+        playerScore.style.display = "block";
         pregameScreen.style.display = "none";
     }
 }

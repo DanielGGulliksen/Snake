@@ -63,6 +63,7 @@ function showReady(username, ready){
         return readyp(username);
 }
 
+
 // This method prints out an HTML table containing all rooms with
 // their respective members.
 function updateRooms(rooms){
@@ -237,7 +238,7 @@ socket.on('update game', (gameState) => {
     showScore(gameState);
 });
 
-// On 'game over' the user is shown the 'post-game' screen.
+
 function showScore(gameState) {
     gameState.players.forEach(player => {
         if(player.id == clientId) {
@@ -247,6 +248,7 @@ function showScore(gameState) {
     });
 }
 
+// On 'game over' the user is shown the 'post-game' screen.
 socket.on('game over', () => {
     postgameScreen.style.display = "inline-block";
 });

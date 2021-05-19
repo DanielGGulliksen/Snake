@@ -1,3 +1,5 @@
+/* 'game.css' contains all display preferences for the 'in-game' screen */
+
 body {
     height: 100vh;
     width: 100vw;
@@ -8,6 +10,7 @@ body {
     background-color: rgb(14, 19, 37);
 }
 
+/* The HTML 'game' div is based on the CSS grid display style */
 #game {
     background-color: black;
     width: 100vmin;

@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon app.js",
+    "create": "node database/js/create.js"
   },
   "repository": {
     "type": "git",
@@ -18,8 +19,11 @@
   "homepage": "https://github.com/Degetei/Snake#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "knex": "^0.95.6",
+    "morgan": "^1.10.0",
     "node-fetch": "^2.6.1",
     "nodemon": "^2.0.7",
+    "pg": "^8.6.0",
     "prom-client": "^13.1.0",
     "socket.io": "^4.0.1"
   }

@@ -18,31 +18,75 @@ app.get('/metrics', async (req, res) => {
 // Prometheus end
 
 
-
+// The section below is initializes the server with HTTPS.
+// The server's communication is encrypted using a self signed TLS certificate.
 /*
+
+// Necessary imports for TLS/SSL implementation.
 const https = require('https')
 const fs = require('fs')
 const path = require('path')
-*/
 
-
-
-/*
+// Defining routes to TLS encryption requirements.
 const credentials = {
     key: fs.readFileSync(path.join(__dirname, 'static/misc', 'key.pem')),
     cert: fs.readFileSync(path.join(__dirname, 'static/misc', 'cert.pem')),
 };
 
+// Creating SSL server.
 const sslServer = https.createServer(credentials, app);
 
+// Server is not initialized as a server implementing the SSL/TLS protocol.
 var server = sslServer.listen(5000, () => {
     console.log('Listening on port 5000');
 });
+// TLS end
 */
 
+
+/* The following section implement GET and POST requests to an external
+*  MySQL database (Postgres). This database is run in a separate docker container.
+*/
+
+// Database necessities
+const morgan = require('morgan');
+const database = require('./database/js');
+
+// Middleware
+app.use(morgan('dev'))
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+
+// Retrieves contents of MySQL 'leaders' relation from the external database.
+app.get('/leaderboard', async (req, res) => {
+    const leaders = await database.select().from('leaders');
+    res.json(leaders.sort(compare).reverse());
+});
+
+// Retrieves contents of MySQL 'singleplayerleaders' relation from the external database.
+app.get('/singleplayerleaderboard', async (req, res) => {
+    const leaders = await database.select().from('singleplayerleaders');
+    res.json(leaders.sort(compare).reverse());
+});
+
+/*
+app.post('/leaderboard', async (req, res) => {
+    //const user = await database('leaders').insert({ name: req.body.name }).returning('*');
+    const leader = await database('leaders').insert({name:req.body.name, score:req.body.score})
+    //res.json(user)
+    console.log(req.body);
+});
+*/
+
+// MySQL end
+
+
+// This initializes the server using HTTP with no implemented TLS to encrypt
+// communication.
 var server = app.listen(5000, () => {
     console.log('Listening on port 5000');
 });
+
 
 // Static directory 'static' contains subdirectiories css, js, misc, and html.
 // the four lines below explicitly provide routes to every file in the project.
@@ -51,11 +95,11 @@ app.use("/static/js", express.static('./static/js/'))
 app.use("/static/css", express.static('./static/css/'))
 app.use("/static/misc", express.static('./static/misc/'))
 
+// Starting 'socket.io'
 var io = socket(server);
 
-/* The following dictionaries are universal and used to manage the systems
-*  rooms, players, and game states respectively
-*/
+// The following dictionaries are universal and used to manage the systems
+//  rooms, players, and game states respectively
 let rooms = {};
 let players = {};
 let gameStates = {};
@@ -79,7 +123,9 @@ io.on('connection', function(socket){
             }
         }
         
+        //Updating players overview on client side for all clients
         io.sockets.emit('update players', players);
+
 
         // The function below is used to handle a user disconnection to avoid storing users
         // that are no longer connected.
@@ -119,6 +165,7 @@ io.on('connection', function(socket){
 
             io.sockets.emit('update players', players);
         });
+
 
         // This creates a user room which is isolated from all other rooms.
         // Rooms are used to facilitate the instansiation of multiple parallel multiplayer games.
@@ -318,6 +365,12 @@ io.on('connection', function(socket){
                 if (singleplayerGameState.players != undefined)
                     singleplayerGameState.players[0].direction = direction;
         });
+
+        //This method posts a new user to one of the two database relations.
+        socket.on('post to leaderboard', function(leader) {
+            postToLeaderboard(leader);
+        });
+    
 });
 
 // This method create a multiplayer game state. This game state is stored in the
@@ -587,3 +640,46 @@ const names = ['Brian', 'Kiera', 'Treasa', 'Tierney', 'Phelan', 'Eadan', 'Shea',
                'Ronan', 'Keeva', 'Daley', 'Aignes', 'Quinn', 'Nola', 'Rory', 'Conor', 'Ulick', 'Alannah',
                'Moyra', 'Fiona', 'Cathair', 'Toal', 'Catriona', 'Enya', 'Concepta', 'Aoife', 'Niamh', 'Fionntan',
                'Daly', 'Svavonne', 'Keenan', 'Teague', 'Brendanus', 'Florry', 'Talulla', 'Devnet', 'Cormac', 'Bryant'];
+
+
+// Updates the two 'leaderboards' stored on the database and ensures only
+// 5 users are stored in each relation.
+async function postToLeaderboard(leader){
+    
+    if (leader.multiplayer){
+        if (leader.leaderboardlength >= 5){
+            
+            await database('leaders').del().where({id:leader.lowestId});
+            await database('leaders').insert({name:leader.name, score:leader.score});
+        }
+        else {
+            await database('leaders').insert({name:leader.name, score:leader.score});
+        }
+    }
+    else {
+        if (leader.leaderboardlength >= 5){
+            
+            await database('singleplayerleaders').del().where({id:leader.lowestId});
+            await database('singleplayerleaders').insert({name:leader.name, score:leader.score});
+        }
+        else {
+            await database('singleplayerleaders').insert({name:leader.name, score:leader.score});
+        }
+    }
+}
+
+// This method is used by the ".sort()" method to sorth the leaderboard
+// based on their respective scores.
+function compare(userA, userB) {
+    
+    const scoreA = userA.score;
+    const scoreB = userB.score;
+  
+    let comparison = 0;
+    if (scoreA > scoreB) {
+      comparison = 1;
+    } else if (scoreA < scoreB) {
+      comparison = -1;
+    }
+    return comparison;
+}

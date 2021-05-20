@@ -1,5 +1,6 @@
-//var socket = io.connect('https://localhost:5000', {
-var socket = io.connect('http://localhost:5000', {
+const url = 'http://localhost:5000';
+//const url = 'https://localhost:5000';
+var socket = io.connect(url, {
     'sync disconnect on unload': true
 });
 
@@ -142,10 +143,21 @@ startButton.addEventListener('click', setReady);
 
 //The playerScore 'div' is used to display the the user's score while in game.
 const playerScore = document.getElementById('score');
+let clientScore = 0;
 playerScore.style.display = "none";
+
+// This boolean is used to determine which database relation is to be accessed
+// by this client.
+let multiplayer = false;
+
+// This boolean is used to ensure that some function don't run when the game
+// is not ongoing.
+let gameOngoing = false;
 
 // This button initializes a single player game.
 function newSingleplayer(){
+    multiplayer = false;
+    clientScore = 0;
     socket.emit('start singleplayer')
     socket.emit('leave multiplayer');
     loginScreen.style.display = "none";
@@ -179,6 +191,8 @@ const label = document.createElement('label');
 // This method initializes a games countdown procedure. It also sets up
 // the 'pre-game' screen. 
 socket.on('start game', () => {
+    multiplayer = true;
+    clientScore = 0;
     loginScreen.style.display = "none";
     pregameScreen.style.display = "block";
     let info = document.getElementById("info");
@@ -210,6 +224,7 @@ function countdown(counter){
         countdownDisplay.innerText = "";
         playerScore.style.display = "block";
         pregameScreen.style.display = "none";
+        gameOngoing = true;
     }
 }
 
@@ -248,16 +263,34 @@ socket.on('update game', (gameState) => {
 function showScore(gameState) {
     gameState.players.forEach(player => {
         if(player.id == clientId) {
-            playerScore.innerText = "Score: " + player.score;
+            clientScore = player.score;
+            playerScore.innerText = "Score: " + clientScore;
             return; 
         }
     });
 }
 
+// The leaderboard displayed in the post-game screen
+const leaderboard = document.getElementById('leaderboard');
+
 // On 'game over' the user is shown the 'post-game' screen.
 socket.on('game over', () => {
+    gameScreen.innerHTML = "";
     postgameScreen.style.display = "inline-block";
+    //fetch(url + '/api/users', {method: 'GET', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(json)});
+    if (multiplayer){
+        fetch(url+"/leaderboard").then((response) => response.json())
+        .then((leaders) => showLeaderboard(leaders));
+    }
+    else {
+        fetch(url+"/singleplayerleaderboard").then((response) => response.json())
+        .then((leaders) => showLeaderboard(leaders));
+    }
+    gameOngoing = false;
 });
+
+// This button is shown in the postgame screen to take the user to the login screen
+const homeButton = document.getElementById('homeButton');
 
 // Takes the user back to the 'login' screen.
 function toHome(){
@@ -280,3 +313,69 @@ function toHome(){
 socket.on('screen refresh', () => {    
     gameScreen.innerHTML = "";
 });
+
+//This div is only visible when the player breaks a record
+const newRecordDiv = document.getElementById('newrecord');
+newRecordDiv.style.display = "none";
+
+// These variables are used to assist the server in updating the MySQL database.
+let leaderboardLength = 0;
+let lowest = 0;
+let lowestId = 0;
+
+// This method displays the leaderboard for single- or multiplayer games.
+// It also checks if the user has "broken" a record.
+function showLeaderboard(leaders) {
+    leaderboard.innerHTML = "";
+    const name = content => `<div>${content}</div>`;
+    const score = content => `<div class="scorediv">${content}</div>`;
+    leaderboardLength = leaders.length;
+    for (var leader in leaders){
+        let row = "<div class='leaderrow'>"+name(leaders[leader].name) + score(leaders[leader].score);
+        leaderboard.innerHTML += row + "</div>";
+    }
+    
+    if (newRecord(leaders)){
+        homeButton.style.display = "none";
+        newRecordDiv.style.display = "block";
+    }
+}
+
+// Checks if the user has broken a record
+function newRecord(leaders){
+    
+    let newRecord = false;
+    lowest = 0;
+
+    if (leaders.length >= 5){
+        for (var leader in leaders){
+      
+            if (leaders[leader].score <= leaders[lowest].score){
+                lowest = leader;
+                lowestId = leaders[lowest].id;
+            }
+            if (clientScore > leaders[leader].score){
+                newRecord = true;
+            }
+        }
+    }
+    else {
+        newRecord = true;
+    }
+    return newRecord;
+}
+
+// This method handles user inputs and sends it to update the database
+// on the server side.
+function submitRecord(){
+    const newname = document.getElementById('nameInput').value;
+    if (newname != ""){
+        console.log("lowest id:" + lowestId);
+        const leader = {name:newname, score:clientScore, leaderboardlength:leaderboardLength, lowestId:lowestId, multiplayer:multiplayer};
+        socket.emit('post to leaderboard', leader);
+        homeButton.style.display = "inline-block";
+        newRecordDiv.style.display = "none";
+    }
+    else
+        document.getElementById('feedback2').innerText ="Please provide a valid name";
+}

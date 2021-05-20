@@ -50,10 +50,17 @@
     <div id="postgame" class="postgame">
         <h1>Game over</h1>
         <h1 style="font-size: 20px;">Leaderboard</h1>
-        <table id = "leaderboard"></table>
-        <button onclick="toHome();">Home</button>
+        <div id = "leaderboard"></div><br/>
+
+        <div id="newrecord">
+            <label>(New Record!) Provide your name here:</label>
+            <input id="nameInput" type="text"></input>
+            <button onclick="submitRecord();">Submit</button>
+            <label id="feedback2"></label>
+        </div><br/>
+
+        <button id="homeButton" onclick="toHome();">Home</button>
     </div>
-    
     
 <!-- 'client.js' handles display -->
 <script type="text/javascript" src="static/js/client.js"></script>

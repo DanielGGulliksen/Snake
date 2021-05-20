@@ -78,5 +78,6 @@ function changeDirection(key) {
     if (key.keyCode === 40 && !goingUp) { // down
         direction = { x: 0, y: 1 };
     }
-    socket.emit('update direction', direction);
+    if (gameOngoing)
+        socket.emit('update direction', direction);
 }

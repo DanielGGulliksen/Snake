@@ -563,7 +563,7 @@ function updateSnake(gameState) {
                     
                     if(head.x == gameState.food.body[0].x && head.y == gameState.food.body[0].y){
                         gameState.food = generateFood();
-                        player.score += 100; 
+                        player.score += 10; 
                     }
                     else
                         player.body.pop();

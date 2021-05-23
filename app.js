@@ -61,7 +61,7 @@ app.use(express.urlencoded({ extended: true }))
 // Retrieves contents of MySQL 'leaders' relation from the external database.
 app.get('/leaderboard', async (req, res) => {
     const leaders = await database.select().from('leaders');
-    res.json(leaders.sort(compare).reverse());
+    res.json(leaders.sort(compare));
 });
 
 // Retrieves contents of MySQL 'singleplayerleaders' relation from the external database.

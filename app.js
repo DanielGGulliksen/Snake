@@ -3,6 +3,8 @@ var socket = require('socket.io');
 
 const app = express();
 
+
+
 /* The section below is used to export the server's performance metrics
 *  to the Prometheus monitioring system
 */
@@ -18,9 +20,9 @@ app.get('/metrics', async (req, res) => {
 // Prometheus end
 
 
+
 // The section below is initializes the server with HTTPS.
 // The server's communication is encrypted using a self signed TLS certificate.
-/*
 
 // Necessary imports for TLS/SSL implementation.
 const https = require('https')
@@ -41,14 +43,13 @@ var server = sslServer.listen(5000, () => {
     console.log('Listening on port 5000');
 });
 // TLS end
-*/
+
 
 
 /* The following section implement GET and POST requests to an external
 *  MySQL database (Postgres). This database is run in a separate docker container.
 */
-
-// Database necessities
+// Database imports
 const morgan = require('morgan');
 const database = require('./database/js');
 
@@ -68,24 +69,18 @@ app.get('/singleplayerleaderboard', async (req, res) => {
     const leaders = await database.select().from('singleplayerleaders');
     res.json(leaders.sort(compare).reverse());
 });
-
-/*
-app.post('/leaderboard', async (req, res) => {
-    //const user = await database('leaders').insert({ name: req.body.name }).returning('*');
-    const leader = await database('leaders').insert({name:req.body.name, score:req.body.score})
-    //res.json(user)
-    console.log(req.body);
-});
-*/
-
 // MySQL end
 
 
+
 // This initializes the server using HTTP with no implemented TLS to encrypt
-// communication.
+// communication. It is a comment because HTTPS is being used instead.
+/*
 var server = app.listen(5000, () => {
     console.log('Listening on port 5000');
 });
+*/
+
 
 
 // Static directory 'static' contains subdirectiories css, js, misc, and html.

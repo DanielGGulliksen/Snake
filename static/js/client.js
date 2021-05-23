@@ -1,5 +1,4 @@
-const url = 'http://localhost:5000';
-//const url = 'https://localhost:5000';
+const url = 'https://localhost:5000';
 var socket = io.connect(url, {
     'sync disconnect on unload': true
 });
